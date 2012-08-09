@@ -56,8 +56,7 @@ let rec decodeType (stream : Stream) : obj =
     // INTEGER (32 bit integer in big-endian format)
     | 98  -> stream |> readBytes 4 |> bigEndianInteger :> obj
     // FLOAT 
-    | 99  -> // TODO
-             raise <| System.NotImplementedException()
+    | 99  -> stream |> readBytes 31 |> str |> float :> obj
     // ATOM
     | 100 -> let len = stream |> readBytes 2 |> bigEndianShort |> int
              match len with

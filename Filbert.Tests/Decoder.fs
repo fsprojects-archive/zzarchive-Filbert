@@ -43,6 +43,31 @@ type ``Given a 32-bit integer`` () =
         test [| 128uy; 0uy; 0uy; 0uy |] -2147483648
 
 [<TestFixture>]
+type ``Given a float`` () =
+    let test = test 99uy
+
+    [<Test>]
+    member this.``when it's 0.0 it should return 0.0`` () =
+        let byteVals = [| 48uy; 46uy; 48uy; 48uy; 48uy; 48uy; 48uy; 48uy; 48uy; 48uy; 
+                          48uy; 48uy; 48uy; 48uy; 48uy; 48uy; 48uy; 48uy; 48uy; 48uy; 
+                          48uy; 48uy; 101uy; 43uy; 48uy; 48uy; 48uy; 0uy; 0uy; 0uy; 0uy |]
+        test byteVals 0.0
+
+    [<Test>]
+    member this.``when it's 99.99 it should return 99.99`` () =
+        let byteVals = [| 57uy; 46uy; 57uy; 57uy; 56uy; 57uy; 57uy; 57uy; 57uy; 57uy; 
+                          57uy; 57uy; 57uy; 57uy; 57uy; 57uy; 57uy; 53uy; 48uy; 48uy; 
+                          48uy; 48uy; 101uy; 43uy; 48uy; 48uy; 49uy; 0uy; 0uy; 0uy; 0uy |]
+        test byteVals 99.99
+
+    [<Test>]
+    member this.``when it's -1234.56 it should return -1234.56`` () =
+        let byteVals = [| 45uy; 49uy; 46uy; 50uy; 51uy; 52uy; 53uy; 53uy; 57uy; 57uy; 
+                          57uy; 57uy; 57uy; 57uy; 57uy; 57uy; 57uy; 57uy; 57uy; 48uy; 
+                          48uy; 48uy; 48uy; 101uy; 43uy; 48uy; 48uy; 51uy; 0uy; 0uy; 0uy |]
+        test byteVals -1234.56
+
+[<TestFixture>]
 type ``Given an atom`` () =
     let test = test 100uy
 
@@ -54,7 +79,7 @@ type ``Given an atom`` () =
     member this.``when the atom is abc it should return the string 'abc'`` () =
         test [| 0uy; 3uy; 97uy; 98uy; 99uy |] "abc"
 
-    /// Note: max allowed length for atom is 255, term_to_binary(a repeated 256 times) will except
+    /// Note: max allowed length for atom is 255uy;  term_to_binary(a repeated 256 times) will except
     [<Test>]
     member this.``when the atom is a repeated 255 times it should return a string where 'a' is repeated 255 times`` () =
         let byteVals = Array.create<byte> 255 97uy |> Array.append [| 0uy; 255uy |] 
@@ -87,11 +112,11 @@ type ``Given a small tuple`` () =
         test [| 1uy; 97uy; 1uy |] [| 1 |]
 
     [<Test>]
-    member this.``when the tuple is { 1, 1234, a } it should return an [| 1; "a" |]`` () =
+    member this.``when the tuple is { 1uy;  1234uy;  a } it should return an [| 1; "a" |]`` () =
         test [| 3uy; 97uy; 1uy; 98uy; 0uy; 0uy; 4uy; 210uy; 100uy; 0uy; 1uy; 97uy |] [| 1; 1234; "a" |]
 
     [<Test>]
-    member this.``when the tuple is 1 repeated 255 times ({ 1, 1, ... }) it should return [| 1; 1; ... |]`` () =
+    member this.``when the tuple is 1 repeated 255 times ({ 1uy;  1uy;  ... }) it should return [| 1; 1; ... |]`` () =
         let byteVals = [| for i = 1 to 255 do yield! [| 97uy; 1uy |] |]
                        |> Array.append [| 255uy |]
         let expected = Array.create<obj> 255 1
@@ -102,7 +127,7 @@ type ``Given a large tuple`` () =
     let test : byte[] -> obj[] -> unit = test 105uy
 
     [<Test>]
-    member this.``when the tuple is 1 repeated 256 times ({ 1, 1, ... }) it should return [| 1; 1; ... |]`` () =
+    member this.``when the tuple is 1 repeated 256 times ({ 1uy;  1uy;  ... }) it should return [| 1; 1; ... |]`` () =
         let byteVals = [| for i = 1 to 256 do yield! [| 97uy; 1uy |] |]
                        |> Array.append [| 0uy; 0uy; 1uy; 0uy |]
         let expected = Array.create<obj> 256 1
