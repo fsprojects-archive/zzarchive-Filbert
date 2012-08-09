@@ -16,11 +16,23 @@ let bigEndianInteger arr =
     then BitConverter.ToInt32(arr |> Array.rev, 0)
     else BitConverter.ToInt32(arr, 0)
 
+/// Converts a byte array with 4 elements into an uint32
+let bigEndianUinteger arr =
+    if BitConverter.IsLittleEndian 
+    then BitConverter.ToUInt32(arr |> Array.rev, 0)
+    else BitConverter.ToUInt32(arr, 0)
+
 /// Converts a byte array with 2 elements into a short
 let rec bigEndianShort arr =
     if BitConverter.IsLittleEndian
     then BitConverter.ToInt16(arr |> Array.rev, 0)
     else BitConverter.ToInt16(arr, 0)
+
+/// Converts a byte array with 2 elements into a ushort
+let rec bigEndianUshort arr =
+    if BitConverter.IsLittleEndian
+    then BitConverter.ToUInt16(arr |> Array.rev, 0)
+    else BitConverter.ToUInt16(arr, 0)
 
 /// Converts a byte array into a string
 let str = System.Text.Encoding.ASCII.GetString
@@ -58,40 +70,42 @@ let rec decodeType (stream : Stream) : obj =
     // FLOAT 
     | 99  -> stream |> readBytes 31 |> str |> float :> obj
     // ATOM
-    | 100 -> let len = stream |> readBytes 2 |> bigEndianShort |> int
+    | 100 -> let len = stream |> readBytes 2 |> bigEndianUshort |> int
              match len with
              | n when n > 255 -> raise <| InvalidAtomLength len
              | 0 -> raise <| InvalidAtomLength len
              | n -> stream |> readBytes n |> str :> obj
     // SMALL_TUPLE
-    | 104 -> let arity = stream |> readByte |> int
+    | 104 -> let arity = stream |> readByte |> int64
              match arity with
-             | 0 -> [||] :> obj
+             | 0L -> [||] :> obj
              | n -> stream |> readTuple n :> obj
     // LARGE_TUPLE
-    | 105 -> let arity = stream |> readBytes 4 |> bigEndianInteger
+    | 105 -> let arity = stream |> readBytes 4 |> bigEndianUinteger |> int64
              stream |> readTuple arity :> obj
     // NIL
     | 106 -> None :> obj
     // STRING
-    | 107 -> let len = stream |> readBytes 2 |> bigEndianShort |> int
+    | 107 -> let len = stream |> readBytes 2 |> bigEndianUshort |> int
              stream |> readBytes len |> str :> obj
     // LIST
-    | 108 -> let len = stream |> readBytes 4 |> bigEndianInteger
+    | 108 -> let len = stream |> readBytes 4 |> bigEndianUinteger
              // TODO
              raise <| System.NotImplementedException()
     // BINARY
     | 109 -> let len = stream |> readBytes 4 |> bigEndianInteger
+             // [YC] TODO : need to support reading bytes with uint32
              stream |> readBytes len :> obj
     // SMALL_BIG
     | 110 -> let n = stream |> readByte |> int
              stream |> readBigInt n :> obj
     // LARGE_BIG
     | 111 -> let n = stream |> readBytes 4 |> bigEndianInteger
+             // [YC] TODO : need to support reading bytes with uint32
              stream |> readBigInt n :> obj
     | n -> raise <| UnsupportTag n
 and readTuple arity (stream : Stream) =
-    [| 1..arity |] |> Array.map (fun _ -> decodeType stream)
+    [| 1L..arity |] |> Array.map (fun _ -> decodeType stream)
 
 let decode (stream : Stream) =
     match stream |> readByte |> int with

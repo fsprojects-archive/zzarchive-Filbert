@@ -132,3 +132,31 @@ type ``Given a large tuple`` () =
                        |> Array.append [| 0uy; 0uy; 1uy; 0uy |]
         let expected = Array.create<obj> 256 1
         test byteVals expected
+
+[<TestFixture>]
+type ``Given a nill`` () =
+    let test = test 106uy
+
+    [<Test>]
+    member this.``when received nil it should return None`` () = test [||] None
+
+[<TestFixture>]
+type ``Given a string`` () =
+    let test = test 107uy
+
+    [<Test>]
+    member this.``when the string is 'a' it should return 'a'`` () =
+        test [| 0uy; 1uy; 97uy |] "a"
+
+    [<Test>]
+    member this.``when the string is 'abc' it should return 'abc'`` () =
+        test [| 0uy; 3uy; 97uy; 98uy; 99uy |] "abc"
+
+    // Note: the max length for a string is 65534
+    [<Test>]
+    member this.``when the string is 'a' repeated 65534 times it should return 'aa...'`` () =
+        let byteVals = [| for i = 1 to 65534 do yield 97uy |]
+                       |> Array.append [| 255uy; 254uy |]
+        let strVal = [| for i = 1 to 65534 do yield 'a' |]
+                     |> (fun arr -> new string(arr))
+        test byteVals strVal
