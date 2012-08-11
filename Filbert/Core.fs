@@ -4,6 +4,33 @@ open System
 open System.Numerics
 
 [<RequireQualifiedAccess>]
+module Tags =    
+    [<Literal>] 
+    let smallInteger  = 97uy
+    [<Literal>] 
+    let integer       = 98uy
+    [<Literal>] 
+    let float         = 99uy
+    [<Literal>] 
+    let atom          = 100uy
+    [<Literal>] 
+    let smallTuple    = 104uy
+    [<Literal>] 
+    let largeTuple    = 105uy
+    [<Literal>] 
+    let nil           = 106uy
+    [<Literal>] 
+    let string        = 107uy
+    [<Literal>] 
+    let list          = 108uy
+    [<Literal>] 
+    let binary        = 109uy
+    [<Literal>] 
+    let smallBig      = 110uy
+    [<Literal>] 
+    let largeBig      = 111uy
+
+[<RequireQualifiedAccess>]
 module Constants =
     [<Literal>] 
     let bert            = "bert"
@@ -41,6 +68,6 @@ type Bert =
     | EmptyArray                // { bert, nil }
     | Boolean       of bool     // { bert, true } or { bert, false }
     // Dictionary args : array of key * value tuple, key and value can both be any BERT term
-    | Dictionary    of (Bert * Bert)[]  // { bert, dict, [{name, <<"Tom">>}, {age, 30}]}
+    | Dictionary    of Map<Bert, Bert>  // { bert, dict, [{name, <<"Tom">>}, {age, 30}]}
     // Time args : megaseconds (millions of seconds) * seconds * microseconds (millionth of a second)
     | Time          of DateTime  // { bert, time, 1255, 295581, 446228 }

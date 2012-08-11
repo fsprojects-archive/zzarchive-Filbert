@@ -7,11 +7,12 @@ open Filbert.Core
 // InsufficientNumberOfBytes args : required number of bytes, number of bytes read
 exception InsufficientNumberOfBytes of int * int
 exception EndOfStreamReached
-exception UnsupportTag              of int
+exception UnsupportTag              of byte
 exception InvalidVersion            of int
 exception InvalidAtomLength         of int
 exception InvalidStringLength       of int
 exception UnsupportedComplexBert    of Bert[]
+exception InvalidKeyValueTuple      of Bert
 
 let readLen f arr = if BitConverter.IsLittleEndian then f(arr |> Array.rev, 0) else f(arr, 0)
 
@@ -69,61 +70,67 @@ let readComplexBert (items : Bert[]) =
     | [| Atom(Constants.bert); Atom(Constants.time); Integer(mega); Integer(sec); Integer(micro) |]
         -> toDateTime mega sec micro |> Time
     | [| Atom(Constants.bert); Atom(Constants.dict); List(arr) |]
-        -> Nil
+        -> arr
+           |> Array.map (fun kvp -> match kvp with
+                                    | Tuple([| key; value |]) -> key, value
+                                    | _ -> raise <| InvalidKeyValueTuple kvp)
+           |> Map.ofArray
+           |> Dictionary
     | _ -> raise <| UnsupportedComplexBert(items)
 
 /// Parses the Erlang External Term Format 
 /// see http://erlang.org/doc/apps/erts/erl_ext_dist.html
 let rec decodeType (stream : Stream) : Bert =
-    match readByte stream |> int with
+    match readByte stream with
     // SMALL_INTEGER (unsigned 8 bit integer) 
-    | 97  -> stream |> readByte |> int |> Integer
+    | Tags.smallInteger -> stream |> readByte |> int |> Integer
     // INTEGER (32 bit integer in big-endian format)
-    | 98  -> stream |> readBytes 4 |> bigEndianInteger |> Integer
+    | Tags.integer      -> stream |> readBytes 4 |> bigEndianInteger |> Integer
     // FLOAT 
-    | 99  -> stream |> readBytes 31 |> str |> float |> Float
+    | Tags.float        -> stream |> readBytes 31 |> str |> float |> Float
     // ATOM
-    | 100 -> let len = stream |> readBytes 2 |> bigEndianUshort |> int
-             match len with
-             | n when n > Constants.maxAtomLen -> raise <| InvalidAtomLength len
-             | 0 -> raise <| InvalidAtomLength len
-             | n -> stream |> readBytes n |> str |> Atom
+    | Tags.atom         -> let len = stream |> readBytes 2 |> bigEndianUshort |> int
+                           match len with
+                           | n when n > Constants.maxAtomLen -> raise <| InvalidAtomLength len
+                           | 0 -> raise <| InvalidAtomLength len
+                           | n -> stream |> readBytes n |> str |> Atom
     // SMALL_TUPLE
-    | 104 -> let arity = stream |> readByte
-             match arity with
-             | 0uy -> [||] |> Tuple
-             | n -> stream |> readTuple (int64 n)
+    | Tags.smallTuple   -> let arity = stream |> readByte
+                           match arity with
+                           | 0uy -> [||] |> Tuple
+                           | n -> stream |> readTuple (int64 n)
     // LARGE_TUPLE
-    | 105 -> let arity = stream |> readBytes 4 |> bigEndianUinteger |> int64
-             stream |> readTuple arity
+    | Tags.largeTuple   -> let arity = stream |> readBytes 4 |> bigEndianUinteger |> int64
+                           stream |> readTuple arity
     // NIL
-    | 106 -> Nil
+    | Tags.nil          -> Nil
     // STRING (list of bytes)
-    | 107 -> let len = stream |> readBytes 2 |> bigEndianUshort |> int
-             if len > Constants.maxStringLength 
-             then raise <| InvalidStringLength len
-             else stream |> readBytes len |> ByteList
+    | Tags.string       -> let len = stream |> readBytes 2 |> bigEndianUshort |> int
+                           if len > Constants.maxStringLength 
+                           then raise <| InvalidStringLength len
+                           else stream |> readBytes len |> ByteList
     // LIST
-    | 108 -> let len = stream |> readBytes 4 |> bigEndianUinteger |> int
-             // TODO
-             raise <| System.NotImplementedException()
+    | Tags.list         -> let len = stream |> readBytes 4 |> bigEndianUinteger |> int64
+                           stream |> readBerts len |> List
     // BINARY
-    | 109 -> let len = stream |> readBytes 4 |> bigEndianUinteger |> int
-             match len with 
-             | 0 -> Binary [||]
-             | n -> stream |> readBytes n |> Binary
+    | Tags.binary       -> let len = stream |> readBytes 4 |> bigEndianUinteger |> int
+                           match len with 
+                           | 0 -> Binary [||]
+                           | n -> stream |> readBytes n |> Binary
     // SMALL_BIG
-    | 110 -> let n = stream |> readByte |> int
-             stream |> readBigInt n |> BigInteger
+    | Tags.smallBig     -> let n = stream |> readByte |> int
+                           stream |> readBigInt n |> BigInteger
     // LARGE_BIG
-    | 111 -> let n = stream |> readBytes 4 |> bigEndianUinteger |> int
-             stream |> readBigInt n |> BigInteger
-    | n -> raise <| UnsupportTag n
+    | Tags.largeBig     -> let n = stream |> readBytes 4 |> bigEndianUinteger |> int
+                           stream |> readBigInt n |> BigInteger
+    | n                 -> raise <| UnsupportTag n
+and readBerts n (stream : Stream) =
+    seq { 1L..n } |> Seq.map (fun _ -> decodeType stream) |> Seq.toArray
 and readTuple arity (stream : Stream) =
-    let tupleItems = [| 1L..arity |] |> Array.map (fun _ -> decodeType stream)
-    match tupleItems.[0] with
-    | Atom(Constants.bert) -> readComplexBert(tupleItems)
-    | _                    -> Tuple tupleItems
+    let berts = readBerts arity stream
+    match berts.[0] with
+    | Atom(Constants.bert) -> readComplexBert(berts)
+    | _                    -> Tuple berts
 
 let decode (stream : Stream) =
     match stream |> readByte |> int with
