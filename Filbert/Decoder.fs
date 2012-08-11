@@ -55,8 +55,7 @@ let readBigInt n (stream : Stream) =
 
 /// Converts a set of megasecond, second and microsecond values into a DateTime value
 let toDateTime (mega : int) (sec :int) (micro : int) =
-    // note: 1 tick = 100 ns = 0.1 us
-    Constants.unixEpoch.AddTicks(int64 micro * 10L).AddSeconds(1000000.0 * float mega + float sec)
+    Constants.unixEpoch.AddSeconds(1000000.0 * float mega + float sec + float micro / 1000000.0)
 
 /// Reads a complex BERT type
 let readComplexBert (items : Bert[]) =
