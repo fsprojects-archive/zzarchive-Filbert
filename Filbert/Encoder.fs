@@ -89,11 +89,11 @@ let encodeBigInt (n : bigint) (stream : Stream) =
         -> encodeInt (int n) stream
     | _ when n >= Constants.minSmallBigInt && n <= Constants.maxSmallBigInt
         -> stream |> writeOneByte Tags.smallBig
-           stream |> writeOneByte (if n >= 0I then 0uy else 1uy)
-           // TODO
+           stream |> writeOneByte (if n >= 0I then 0uy else 1uy)           
+           (abs n).ToByteArray() |> writeBytes stream
     | _ -> stream |> writeOneByte Tags.largeBig
            stream |> writeOneByte (if n >= 0I then 0uy else 1uy)
-           // TODO
+           (abs n).ToByteArray() |> writeBytes stream
 
 let rec encodeBert (stream : Stream) bert =
     match bert with

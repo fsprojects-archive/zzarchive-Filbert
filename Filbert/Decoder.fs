@@ -42,12 +42,8 @@ let readByte (stream : Stream) = (readBytes 1 stream).[0]
 
 /// Reads a big integer from n bytes from the stream
 let readBigInt n (stream : Stream) =
-    /// Converts a byte array into a big integer
-    let bigInteger (arr : byte[]) = 
-        arr |> Array.mapi (fun i digit -> (byteToBigInt digit) * (256I ** i)) |> Array.sum
-
     let sign = stream |> readByte |> function | 0uy -> 1I | 1uy -> -1I
-    stream |> readBytes n |> bigInteger |> (fun n -> n * sign)
+    stream |> readBytes n |> (fun bytes -> bigint(bytes) * sign)
 
 /// Converts a set of megasecond, second and microsecond values into a DateTime value
 let toDateTime (mega : int) (sec :int) (micro : int) =
