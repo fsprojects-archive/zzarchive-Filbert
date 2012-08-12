@@ -87,13 +87,19 @@ let encodeBigInt (n : bigint) (stream : Stream) =
         -> encodeSmallInt (int n) stream
     | _ when n >= Constants.minInteger && n <= Constants.maxInteger
         -> encodeInt (int n) stream
-    | _ when n >= Constants.minSmallBigInt && n <= Constants.maxSmallBigInt
-        -> stream |> writeOneByte Tags.smallBig
-           stream |> writeOneByte (if n >= 0I then 0uy else 1uy)           
-           (abs n).ToByteArray() |> writeBytes stream
-    | _ -> stream |> writeOneByte Tags.largeBig
-           stream |> writeOneByte (if n >= 0I then 0uy else 1uy)
-           (abs n).ToByteArray() |> writeBytes stream
+    | n -> let posValue = abs n
+           let bytes = posValue.ToByteArray()
+           if bytes.LongLength > 255L
+           then stream |> writeOneByte Tags.largeBig
+                bytes.LongLength |> uint32 |> getBigEndianBytesUint |> writeBytes stream
+           else stream |> writeOneByte Tags.smallBig
+                stream |> writeOneByte (bytes.Length |> byte)
+
+           match n.Sign with
+           | 1 -> stream |> writeOneByte 0uy    // positive
+           | -1 -> stream |> writeOneByte 1uy   // negative
+
+           posValue.ToByteArray() |> writeBytes stream
 
 let rec encodeBert (stream : Stream) bert =
     match bert with

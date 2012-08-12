@@ -57,11 +57,6 @@ module Constants =
     let maxTupleLength  = 4294967295L   // max uint32
     let unixEpoch       = DateTime(1970, 1, 1)
 
-    // the maximum value that can go into a SMALL_BIG_EXT
-    let maxSmallBigInt  = [| 0..255 |] |> Array.sumBy (fun i -> 9I * (256I ** i))
-    // the minimum value that can go into a SMALL_BIG_EXT
-    let minSmallBigInt  = -1I * maxSmallBigInt
-
 // The different types you can have in BERT (see spec @ http://bert-rpc.org/)
 type Bert =
     // primitive types

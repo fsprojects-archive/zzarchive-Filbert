@@ -207,6 +207,16 @@ type ``Given a small big`` () =
     let test = test 110uy
 
     [<Test>]
+    member x.``when the big num is 2147483648 it should return 2147483648I`` () =
+        let byteVals = [| 4uy; 0uy; 0uy; 0uy; 0uy; 128uy |]
+        test byteVals (BigInteger 2147483648I)
+
+    [<Test>]
+    member x.``when the big num -2147483649 it should return -2147483649`` () =
+        let byteVals = [| 4uy; 1uy; 1uy; 0uy; 0uy; 128uy |]
+        test byteVals (BigInteger -2147483649I)
+
+    [<Test>]
     member x.``when the big num is 111111111111111 it should return 111111111111111I`` () =
         let byteVals = [| 6uy; 0uy; 199uy; 241uy; 78uy; 18uy; 14uy; 101uy |]
         test byteVals (BigInteger 111111111111111I)

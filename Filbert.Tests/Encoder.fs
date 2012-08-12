@@ -197,6 +197,40 @@ type ``Given a list`` () =
         test (List berts) expected
 
 [<TestFixture>]
+type ``Given a big integer`` () =
+    [<Test>]
+    member x.``when it's 0 it should return SMALL_INTEGER_EXT 0`` () =
+        test 97uy (BigInteger 0I) [| 0uy |]
+
+    [<Test>]
+    member x.``when it's 255 it should return SMALL_INTEGER_EXT 255`` () =
+        test 97uy (BigInteger 255I) [| 255uy |]
+
+    [<Test>]
+    member x.``when it's -1 it should return INTEGER_EXT -1`` () =
+        test 98uy (BigInteger -1I) [| 255uy; 255uy; 255uy; 255uy |]
+
+    [<Test>]
+    member x.``when it's 256 it should return INTEGER_EXT 256`` () =
+        test 98uy (BigInteger 256I) [| 0uy; 0uy; 1uy; 0uy |]
+
+    [<Test>]
+    member x.``when it's 2147483647 it should return INT_EXT 2147483647`` () =
+        test 98uy (BigInteger 2147483647I) [| 127uy; 255uy; 255uy; 255uy |]
+
+    [<Test>]
+    member x.``when it's -2147483648 it should return INT_EXT -2147483648`` () =
+        test 98uy (BigInteger -2147483648I) [| 128uy; 0uy; 0uy; 0uy |]
+
+    [<Test>]
+    member x.``when it's 2147483648 it should return SMALL_BIG_EXT 2147483648`` () =
+        test 110uy (BigInteger 2147483648I) [| 4uy; 0uy; 0uy; 0uy; 0uy; 128uy |]
+
+    [<Test>]
+    member x.``when it's -2147483649 it should return SMALL_BIG_EXT -2147483649`` () =
+        test 110uy (BigInteger 2147483649I) [| 4uy; 1uy; 1uy; 0uy; 0uy; 128uy |]
+
+[<TestFixture>]
 type ``Given an empty array`` () =
     [<Test>]
     member x.``it should return SMALL_TUPLE_EXT for { bert, nil }`` () =
