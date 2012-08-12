@@ -150,10 +150,10 @@ and encodeTime t =
     // how many ticks (10 millionth of a second = 0.1 microsecond) since zero hour
     let elapsedTicks = (t - Constants.unixEpoch).Ticks
 
-    let ticksPerMegasecond, ticksPerSecond = 10000000000000L, 1000000L
+    let ticksPerMegasecond, ticksPerSecond = 10000000000000L, 10000000L
     let mega = elapsedTicks / ticksPerMegasecond |> int
     let seconds = (elapsedTicks % ticksPerMegasecond) / ticksPerSecond |> int
-    let micro = elapsedTicks % ticksPerSecond |> int
+    let micro = elapsedTicks % ticksPerSecond / 10L |> int
 
     let tuple = [| Atom(Constants.bert); Atom(Constants.time); 
                    Integer(mega); Integer(seconds); Integer(micro) |]

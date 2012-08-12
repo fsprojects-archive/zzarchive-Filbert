@@ -248,7 +248,7 @@ type ``Given a complex BERT`` () =
     member this.``when it's { bert, dict, [{ name, <<"Tom">> }, { age, 30 }] } then it should return a dictionary`` () =
         let byteVals = [| 3uy; 100uy; 0uy; 4uy; 98uy; 101uy; 114uy; 116uy; 100uy; 0uy; 4uy; 100uy; 105uy; 99uy; 116uy; 108uy; 0uy; 0uy; 
                           0uy; 2uy; 104uy; 2uy; 100uy; 0uy; 4uy; 110uy; 97uy; 109uy; 101uy; 109uy; 0uy; 0uy; 0uy; 3uy; 84uy; 111uy; 109uy; 
-                          104uy; 2uy; 100uy; 0uy; 3uy; 97uy; 103uy; 101uy; 97uy; 30uy; 106uy  |]
+                          104uy; 2uy; 100uy; 0uy; 3uy; 97uy; 103uy; 101uy; 97uy; 30uy; 106uy |]
 
         let expected = [| (Atom "name", Binary [| 84uy; 111uy; 109uy |]); (Atom "age", Integer 30) |]
                        |> Map.ofArray
