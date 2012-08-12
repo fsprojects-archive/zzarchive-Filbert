@@ -39,7 +39,7 @@ let encodeInt (n : int) (stream : Stream) =
 /// Encodes a float
 let encodeFloat (f : float) (stream : Stream) = 
     stream |> writeOneByte Tags.float
-    let fStr = f.ToString("E20").ToLower()
+    let fStr = f.ToString("e20")
     
     seq {
         let strBytes = Text.Encoding.ASCII.GetBytes fStr

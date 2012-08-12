@@ -64,9 +64,10 @@ type ``Given a float`` () =
 
     [<Test>]
     member x.``when it's -1234.56 it should return FLOAT_EXT -1234.56`` () =
-        let expected = [| 45uy; 49uy; 46uy; 50uy; 51uy; 52uy; 53uy; 53uy; 57uy; 57uy; 
-                          57uy; 57uy; 57uy; 57uy; 57uy; 57uy; 57uy; 57uy; 57uy; 48uy; 
-                          48uy; 48uy; 48uy; 101uy; 43uy; 48uy; 48uy; 51uy; 0uy; 0uy; 0uy |]
+        let expected = [| 45uy; 49uy; 46uy; 50uy; 51uy; 52uy; 53uy; 54uy; 48uy; 
+                          48uy; 48uy; 48uy; 48uy; 48uy; 48uy; 48uy; 48uy; 48uy; 
+                          48uy; 48uy; 48uy; 48uy; 48uy; 101uy; 43uy; 48uy; 48uy; 
+                          51uy; 0uy; 0uy; 0uy |]
         test (Float -1234.56) expected
 
 [<TestFixture>]
