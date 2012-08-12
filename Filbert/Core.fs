@@ -45,7 +45,7 @@ module Constants =
     [<Literal>]
     let time            = "time"
     [<Literal>]
-    let version         = 131
+    let version         = 131uy
 
     let maxSmallInt     = 255I          // max unsigned 8 bit int
     let maxInteger      = 2147483647I   // max signed 32 bit int
@@ -89,7 +89,7 @@ module Exceptions =
     exception InsufficientNumberOfBytes of int * int
     exception EndOfStreamReached
     exception UnsupportTag              of byte
-    exception InvalidVersion            of int
+    exception InvalidVersion            of byte
     exception InvalidAtomLength         of int
     exception InvalidStringLength       of int
     exception InvalidBinaryLength       of int64

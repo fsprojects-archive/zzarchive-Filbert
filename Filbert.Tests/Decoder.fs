@@ -114,12 +114,12 @@ type ``Given a small tuple`` () =
         test [| 1uy; 97uy; 1uy |] (Tuple [| (Integer 1) |])
 
     [<Test>]
-    member x.``when the tuple is { 1uy;  1234uy;  a } it should return an [| 1; "a" |]`` () =
+    member x.``when the tuple is { 1, 1234, a } it should return an [| 1; 1234; "a" |]`` () =
         let expected = (Tuple [| (Integer 1); (Integer 1234); (Atom "a") |])
         test [| 3uy; 97uy; 1uy; 98uy; 0uy; 0uy; 4uy; 210uy; 100uy; 0uy; 1uy; 97uy |] expected
 
     [<Test>]
-    member x.``when the tuple is 1 repeated 255 times ({ 1uy;  1uy;  ... }) it should return [| 1; 1; ... |]`` () =
+    member x.``when the tuple is 1 repeated 255 times ({ 1, 1, ... }) it should return [| 1; 1; ... |]`` () =
         let byteVals = [| for i = 1 to 255 do yield! [| 97uy; 1uy |] |]
                        |> Array.append [| 255uy |]
         let expected = Tuple(Array.create<Bert> 255 (Integer 1))
@@ -130,7 +130,7 @@ type ``Given a large tuple`` () =
     let test = test 105uy
 
     [<Test>]
-    member x.``when the tuple is 1 repeated 256 times ({ 1uy;  1uy;  ... }) it should return [| 1; 1; ... |]`` () =
+    member x.``when the tuple is 1 repeated 256 times ({ 1, 1, ... }) it should return [| 1; 1; ... |]`` () =
         let byteVals = [| for i = 1 to 256 do yield! [| 97uy; 1uy |] |]
                        |> Array.append [| 0uy; 0uy; 1uy; 0uy |]
         let expected = Tuple(Array.create<Bert> 256 (Integer 1))

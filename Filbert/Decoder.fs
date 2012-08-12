@@ -4,6 +4,9 @@ open System
 open System.IO
 open Filbert.Core
 
+// make sure we don't have any arithmetic overflows
+open Checked
+
 /// Converts a byte array using the specified function using big endian
 let readBigEndian f arr = 
     if BitConverter.IsLittleEndian then f(arr |> Array.rev, 0) else f(arr, 0)
@@ -131,6 +134,6 @@ and readTuple arity (stream : Stream) =
     | _                    -> Tuple berts
 
 let decode (stream : Stream) =
-    match stream |> readByte |> int with
+    match stream |> readByte with
     | Constants.version -> decodeType stream
     | n   -> raise <| InvalidVersion n
