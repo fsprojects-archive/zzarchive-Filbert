@@ -98,3 +98,4 @@ module Exceptions =
     exception UnsupportedComplexBert    of Bert[]
     exception InvalidKeyValueTuple      of Bert
     exception InvalidTime               of DateTime
+    exception ImpropertyListNotSupported

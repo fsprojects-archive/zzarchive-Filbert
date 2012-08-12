@@ -116,6 +116,9 @@ and encodeList (berts : Bert[]) (stream : Stream) =
     berts.LongLength |> uint32 |> getBigEndianBytesUint |> writeBytes stream
     berts |> Array.iter (encodeBert stream)
 
+    // as per specified by STRING_EXT, end the list with NIL_EXT as tail
+    stream |> writeOneByte Tags.nil
+
 /// Encodes a tuple
 and encodeTuple (berts : Bert[]) (stream : Stream) =
     if berts.LongLength > Constants.maxTupleLength then raise <| InvalidTupleLength berts.LongLength

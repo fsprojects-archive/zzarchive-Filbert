@@ -173,6 +173,29 @@ type ``Given a binary`` () =
         test (Binary bytes) expected
 
 [<TestFixture>]
+type ``Given a list`` () =
+    let test = test 108uy
+
+    [<Test>]
+    member x.``when it's [{ bert, true }, 1, { 1, 2 }, [ 1, a ]] it should return LIST_EXT with 4 length`` () =
+        let expected = [| 0uy; 0uy; 0uy; 4uy; 
+                          104uy; 2uy; 
+                          100uy; 0uy; 4uy; 98uy; 101uy; 114uy; 116uy; 
+                          100uy; 0uy; 4uy; 116uy; 114uy; 117uy; 101uy; 
+                          97uy; 1uy; 
+                          104uy; 2uy; 
+                          97uy; 1uy; 97uy; 2uy; 
+                          108uy; 0uy; 0uy; 0uy; 2uy; 
+                          97uy; 1uy; 
+                          100uy; 0uy; 1uy; 97uy; 106uy; 
+                          106uy |]
+        let berts = [| Boolean true; 
+                       Integer 1; 
+                       Tuple [| Integer 1; Integer 2 |]; 
+                       List [| Integer 1; Atom "a" |] |]
+        test (List berts) expected
+
+[<TestFixture>]
 type ``Given an empty array`` () =
     [<Test>]
     member x.``it should return SMALL_TUPLE_EXT for { bert, nil }`` () =
@@ -205,10 +228,11 @@ type ``Given a dictionary`` () =
                           100uy; 0uy; 4uy; 98uy; 101uy; 114uy; 116uy; 
                           100uy; 0uy; 4uy; 100uy; 105uy; 99uy; 116uy; 
                           108uy; 0uy; 0uy; 0uy; 2uy; 
-                          104uy; 2uy; 100uy; 0uy; 4uy; 110uy; 97uy; 109uy; 101uy; 109uy; 0uy; 0uy; 0uy; 3uy; 84uy; 111uy; 109uy; 
-                          104uy; 2uy; 100uy; 0uy; 3uy; 97uy; 103uy; 101uy; 97uy; 30uy; 106uy |]
+                          104uy; 2uy; 100uy; 0uy; 3uy; 97uy; 103uy; 101uy; 97uy; 30uy; 
+                          104uy; 2uy; 100uy; 0uy; 4uy; 110uy; 97uy; 109uy; 101uy; 109uy; 0uy; 0uy; 0uy; 3uy; 84uy; 111uy; 109uy;                          
+                          106uy |]
         let kvpPairs = [| (Atom "age", Integer 30);
-                          (Atom "name", Binary [| 84uy; 111uy; 109uy |])
+                          (Atom "name", Binary [| 84uy; 111uy; 109uy |]);
                        |]
                        |> Map.ofArray
         test 104uy (Dictionary kvpPairs) expected

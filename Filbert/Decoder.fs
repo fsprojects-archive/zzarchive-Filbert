@@ -106,7 +106,14 @@ let rec decodeType (stream : Stream) : Bert =
                            else stream |> readBytes len |> ByteList
     // LIST
     | Tags.list         -> let len = stream |> readBytes 4 |> bigEndianUinteger |> int64
-                           stream |> readBerts len |> List
+                           let berts = stream |> readBerts len
+                           
+                           // as per specified by LIST_EXT, it should end with NIL_EXT for a
+                           // proper list, for simplicity sake, for now impropert list is not
+                           // going to be supported here
+                           match stream |> readByte with
+                           | Tags.nil -> List berts
+                           | _ -> raise ImpropertyListNotSupported
     // BINARY
     | Tags.binary       -> let len = stream |> readBytes 4 |> bigEndianUinteger |> int
                            match len with 

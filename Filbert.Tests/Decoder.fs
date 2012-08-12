@@ -169,9 +169,17 @@ type ``Given a list`` () =
 
     [<Test>]
     member x.``when it's [{ bert, true }, 1, { 1, 2 }, [ 1, a ]] it should return a list of 4 berts`` () =
-        let byteVals = [| 0uy; 0uy; 0uy; 4uy; 104uy; 2uy; 100uy; 0uy; 4uy; 98uy; 101uy; 114uy; 116uy; 
-                          100uy; 0uy; 4uy; 116uy; 114uy; 117uy; 101uy; 97uy; 1uy; 104uy; 2uy; 97uy; 1uy; 97uy; 2uy; 
-                          108uy; 0uy; 0uy; 0uy; 2uy; 97uy; 1uy; 100uy; 0uy; 1uy; 97uy; 106uy; 106uy |]
+        let byteVals = [| 0uy; 0uy; 0uy; 4uy; 
+                          104uy; 2uy; 
+                          100uy; 0uy; 4uy; 98uy; 101uy; 114uy; 116uy; 
+                          100uy; 0uy; 4uy; 116uy; 114uy; 117uy; 101uy; 
+                          97uy; 1uy; 
+                          104uy; 2uy; 
+                          97uy; 1uy; 97uy; 2uy; 
+                          108uy; 0uy; 0uy; 0uy; 2uy; 
+                          97uy; 1uy; 
+                          100uy; 0uy; 1uy; 97uy; 106uy; 
+                          106uy |]
         let expected = List [| Boolean true; 
                                Integer 1; 
                                Tuple [| Integer 1; Integer 2 |]; 
