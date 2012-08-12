@@ -39,8 +39,18 @@ let encodeInt (n : int) (stream : Stream) =
 /// Encodes a float
 let encodeFloat (f : float) (stream : Stream) = 
     stream |> writeOneByte Tags.float
-    let fStr = f.ToString()
-    fStr.Substring(0, min 31 fStr.Length) |> Seq.map byte |> Seq.toArray |> writeBytes stream
+    let fStr = f.ToString("E20").ToLower()
+    
+    seq {
+        let strBytes = Text.Encoding.ASCII.GetBytes fStr
+        yield! strBytes
+
+        // provide padding at the end to make sure we get 31 bytes
+        for i in 1..(31 - strBytes.Length) do yield 0uy
+    }
+    |> Seq.take 31
+    |> Seq.toArray
+    |> writeBytes stream
     
 /// Encodes an atom
 let encodeAtom (str : string) (stream : Stream) =
