@@ -171,3 +171,59 @@ type ``Given a binary`` () =
         let expected = Array.append [| 0uy; 0uy; 0uy; 13uy |] bytes
                           
         test (Binary bytes) expected
+
+[<TestFixture>]
+type ``Given an empty array`` () =
+    [<Test>]
+    member x.``it should return SMALL_TUPLE_EXT for { bert, nil }`` () =
+        let expected = [| 2uy; 
+                          100uy; 0uy; 4uy; 98uy; 101uy; 114uy; 116uy; 
+                          100uy; 0uy; 3uy; 110uy; 105uy; 108uy |]
+        test 104uy EmptyArray expected
+
+[<TestFixture>]
+type ``Given a boolean`` () =
+    [<Test>]
+    member x.``when it's true it should return SMALL_TUPLE_EXT for { bert, true }`` () =
+        let expected = [| 2uy; 
+                          100uy; 0uy; 4uy; 98uy; 101uy; 114uy; 116uy; 
+                          100uy; 0uy; 4uy; 116uy; 114uy; 117uy; 101uy |]
+        test 104uy (Boolean true) expected
+
+    [<Test>]
+    member x.``when it's false it should return SMALL_TUPLE_EXT for { bert, false }`` () =
+        let expected = [| 2uy; 
+                          100uy; 0uy; 4uy; 98uy; 101uy; 114uy; 116uy; 
+                          100uy; 0uy; 5uy; 102uy; 97uy; 108uy; 115uy; 101uy |]
+        test 104uy (Boolean false) expected
+
+[<TestFixture>]
+type ``Given a dictionary`` () =
+    [<Test>]
+    member x.``when it's a dictionary it should return SMALL_TUPLE_EXT for { bert, dict, ... }`` () =
+        let expected = [| 3uy; 
+                          100uy; 0uy; 4uy; 98uy; 101uy; 114uy; 116uy; 
+                          100uy; 0uy; 4uy; 100uy; 105uy; 99uy; 116uy; 
+                          108uy; 0uy; 0uy; 0uy; 2uy; 
+                          104uy; 2uy; 100uy; 0uy; 4uy; 110uy; 97uy; 109uy; 101uy; 109uy; 0uy; 0uy; 0uy; 3uy; 84uy; 111uy; 109uy; 
+                          104uy; 2uy; 100uy; 0uy; 3uy; 97uy; 103uy; 101uy; 97uy; 30uy; 106uy |]
+        let kvpPairs = [| (Atom "age", Integer 30);
+                          (Atom "name", Binary [| 84uy; 111uy; 109uy |])
+                       |]
+                       |> Map.ofArray
+        test 104uy (Dictionary kvpPairs) expected
+
+[<TestFixture>]
+type ``Given a time`` () =
+    /// Note: you can use http://www.epochconverter.com/ to generate some test dates
+    [<Test>]
+    member x.``when the datetime is 2012 Aug 12th 18:50:53.534812 then it should return SMALL_TUPLE_EXT { bert, time, 1344, 797453, 534812 }`` () =
+        let expected = [| 5uy;
+                          100uy; 0uy; 4uy; 98uy; 101uy; 114uy; 116uy;
+                          100uy; 0uy; 4uy; 116uy; 105uy; 109uy; 101uy;
+                          98uy; 0uy; 0uy; 5uy; 64uy;
+                          98uy; 0uy; 12uy; 43uy; 13uy;
+                          98uy; 0uy; 8uy; 41uy; 28uy |]
+        let date = new DateTime(2012, 8, 12, 18, 50, 53)
+        let t = date.AddTicks(5348120L)
+        test 104uy (Time t) expected
