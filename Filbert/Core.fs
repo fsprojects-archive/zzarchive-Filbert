@@ -47,9 +47,20 @@ module Constants =
     [<Literal>]
     let version         = 131
 
+    let maxSmallInt     = 255I          // max unsigned 8 bit int
+    let maxInteger      = 2147483647I   // max signed 32 bit int
+    let minInteger      = -2147483648I  // min signed 32 bit int    
     let maxAtomLen      = 255
     let maxStringLength = 65534
+    let maxBinaryLength = 4294967295L   // max uint32
+    let maxListLength   = 4294967295L   // max uint32
+    let maxTupleLength  = 4294967295L   // max uint32
     let unixEpoch       = DateTime(1970, 1, 1)
+
+    // the maximum value that can go into a SMALL_BIG_EXT
+    let maxSmallBigInt  = [| 0..255 |] |> Array.sumBy (fun i -> 9I * (256I ** i))
+    // the minimum value that can go into a SMALL_BIG_EXT
+    let minSmallBigInt  = -1I * maxSmallBigInt
 
 // The different types you can have in BERT (see spec @ http://bert-rpc.org/)
 type Bert =
@@ -71,3 +82,19 @@ type Bert =
     | Dictionary    of Map<Bert, Bert>  // { bert, dict, [{name, <<"Tom">>}, {age, 30}]}
     // Time args : megaseconds (millions of seconds) * seconds * microseconds (millionth of a second)
     | Time          of DateTime  // { bert, time, 1255, 295581, 446228 }
+
+[<AutoOpen>]
+module Exceptions =
+    // InsufficientNumberOfBytes args : required number of bytes, number of bytes read
+    exception InsufficientNumberOfBytes of int * int
+    exception EndOfStreamReached
+    exception UnsupportTag              of byte
+    exception InvalidVersion            of int
+    exception InvalidAtomLength         of int
+    exception InvalidStringLength       of int
+    exception InvalidBinaryLength       of int64
+    exception InvalidListLength         of int64
+    exception InvalidTupleLength        of int64
+    exception UnsupportedComplexBert    of Bert[]
+    exception InvalidKeyValueTuple      of Bert
+    exception InvalidTime               of DateTime

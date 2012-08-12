@@ -4,35 +4,27 @@ open System
 open System.IO
 open Filbert.Core
 
-// InsufficientNumberOfBytes args : required number of bytes, number of bytes read
-exception InsufficientNumberOfBytes of int * int
-exception EndOfStreamReached
-exception UnsupportTag              of byte
-exception InvalidVersion            of int
-exception InvalidAtomLength         of int
-exception InvalidStringLength       of int
-exception UnsupportedComplexBert    of Bert[]
-exception InvalidKeyValueTuple      of Bert
-
-let readLen f arr = if BitConverter.IsLittleEndian then f(arr |> Array.rev, 0) else f(arr, 0)
+/// Converts a byte array using the specified function using big endian
+let readBigEndian f arr = 
+    if BitConverter.IsLittleEndian then f(arr |> Array.rev, 0) else f(arr, 0)
 
 /// Converts a byte array with 4 elements into an int
-let bigEndianInteger arr = arr |> readLen BitConverter.ToInt32
+let bigEndianInteger arr = arr |> readBigEndian BitConverter.ToInt32
 
 /// Converts a byte array with 4 elements into an uint32
-let bigEndianUinteger arr = arr |> readLen BitConverter.ToUInt32
+let bigEndianUinteger arr = arr |> readBigEndian BitConverter.ToUInt32
 
 /// Converts a byte array with 2 elements into a short
-let rec bigEndianShort arr = arr |> readLen BitConverter.ToInt16
+let rec bigEndianShort arr = arr |> readBigEndian BitConverter.ToInt16
 
 /// Converts a byte array with 2 elements into a ushort
-let rec bigEndianUshort arr = arr |> readLen BitConverter.ToUInt16
+let rec bigEndianUshort arr = arr |> readBigEndian BitConverter.ToUInt16
 
 /// Converts a byte array into a string
 let str = System.Text.Encoding.ASCII.GetString
 
 /// Converts a byte value to a bigint
-let byteToBigint (b : byte) = bigint (int b)
+let byteToBigInt (b : byte) = bigint (int b)
 
 /// Reads a number of bytes from the stream
 let readBytes n (stream : Stream) = 
@@ -49,7 +41,7 @@ let readByte (stream : Stream) = (readBytes 1 stream).[0]
 let readBigInt n (stream : Stream) =
     /// Converts a byte array into a big integer
     let bigInteger (arr : byte[]) = 
-        arr |> Array.mapi (fun i digit -> (byteToBigint digit) * (256I ** i)) |> Array.sum
+        arr |> Array.mapi (fun i digit -> (byteToBigInt digit) * (256I ** i)) |> Array.sum
 
     let sign = stream |> readByte |> function | 0uy -> 1I | 1uy -> -1I
     stream |> readBytes n |> bigInteger |> (fun n -> n * sign)
@@ -124,8 +116,14 @@ let rec decodeType (stream : Stream) : Bert =
     | Tags.largeBig     -> let n = stream |> readBytes 4 |> bigEndianUinteger |> int
                            stream |> readBigInt n |> BigInteger
     | n                 -> raise <| UnsupportTag n
+
+/// Reads a number of BERTs from the stream
 and readBerts n (stream : Stream) =
     seq { 1L..n } |> Seq.map (fun _ -> decodeType stream) |> Seq.toArray
+
+/// Reads a number of BERTs from the stream and return a complex BERT type
+/// or a Tuple of berts depending on whether the magic 'bert' atom is the
+/// first item in the tuple
 and readTuple arity (stream : Stream) =
     let berts = readBerts arity stream
     match berts.[0] with

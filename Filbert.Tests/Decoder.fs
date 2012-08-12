@@ -209,6 +209,11 @@ type ``Given a small big`` () =
                           250uy; 244uy; 4uy; 103uy; 1uy |]
         test byteVals (BigInteger 111111111111111111111111111111I)
 
+    [<Test>]
+    member x.``when the big num is -111111111111111 it should return 111111111111111I`` () =
+        let byteVals = [| 6uy; 1uy; 199uy; 241uy; 78uy; 18uy; 14uy; 101uy |]
+        test byteVals (BigInteger -111111111111111I)
+
 [<TestFixture>]
 type ``Given a complex BERT`` () =
     let test = test 104uy
