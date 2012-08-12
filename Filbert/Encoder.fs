@@ -5,7 +5,7 @@ open System.IO
 open Filbert.Core
 open Checked
 
-let getBigEndianBytesint (n : int) = 
+let getBigEndianBytesInt (n : int) = 
     if BitConverter.IsLittleEndian 
     then BitConverter.GetBytes(n) |> Array.rev 
     else BitConverter.GetBytes(n)
@@ -30,6 +30,22 @@ let encode bert =
             -> yield Tags.atom
                yield! str.Length |> uint16 |> getBigEndianBytesUshort
                yield! Text.Encoding.ASCII.GetBytes str
+        | Tuple(berts) when berts.Length <= 255
+            -> yield Tags.smallTuple
+               // TODO
+        | Tuple(berts)
+            -> yield Tags.largeTuple
+               // TODO
+        | Nil -> yield Tags.nil
+        | ByteList(bytes)
+            -> yield Tags.string
+               // TODO
+        | List(berts)
+            -> yield Tags.list
+               // TODO
+        | Binary(bytes)
+            -> yield Tags.binary
+               // TODO
         | _
             -> failwith "TODO"        
     }
