@@ -4,7 +4,7 @@
 
 Filbert is a simple **BERT** serializer for .Net, written in F#.
 
-## What is BERT
+## What is BERT?
 
 [BERT] (http://bert-rpc.org/) is a flexible binary serialization format using the same encoding format as Erlang's [external term format] (http://erlang.org/doc/apps/erts/erl_ext_dist.html) but supports only the following data types:
 
@@ -26,3 +26,6 @@ In addition, BERT also specifies a number of complex types as tuples whose first
 * **boolean** : { bert, true } or { bert, false } for __true__ and __false__ respectively.
 * **dictionary** : { bert, dict, [{name, <<"Yan">>}, {nick, theburningmonk}] }, a dictionary is represented as a tuple with 3 items - the atoms __bert__ and __dict__ followed by a list of 2 item tuples each representing a key-value pair.
 * **time** : { bert, time, 1255, 295581, 446228 }, equals to 1255 megaseconds (millions of secons) + 295581 seconds + 446228 microseconds (millionths of a second, or 10 ticks) since the Unix Epoch time (1970 Jan 1st).
+
+## How does it work?
+Please see the [wiki page] (https://github.com/theburningmonk/Filbert/wiki) for a quick tutorial on how to use __Filbert__.
