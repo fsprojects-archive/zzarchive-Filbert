@@ -128,10 +128,12 @@ type ``Given a tuple`` () =
 
 [<TestFixture>]
 type ``Given a nill`` () =
-    let test = test 106uy
-
     [<Test>]
-    member x.``when received a nil it should return NIL_EXT`` () = test Nil [||]
+    member x.``when received a nil it should return SMALL_TUPLE_EXT for { bert, nil }`` () = 
+        let expected = [| 2uy; 
+                          100uy; 0uy; 4uy; 98uy; 101uy; 114uy; 116uy; 
+                          100uy; 0uy; 3uy; 110uy; 105uy; 108uy |]
+        test 104uy Nil expected
 
 [<TestFixture>]
 type ``Given a string (bytelist)`` () =
@@ -276,11 +278,7 @@ type ``Given a big integer`` () =
 [<TestFixture>]
 type ``Given an empty array`` () =
     [<Test>]
-    member x.``it should return SMALL_TUPLE_EXT for { bert, nil }`` () =
-        let expected = [| 2uy; 
-                          100uy; 0uy; 4uy; 98uy; 101uy; 114uy; 116uy; 
-                          100uy; 0uy; 3uy; 110uy; 105uy; 108uy |]
-        test 104uy EmptyArray expected
+    member x.``it should return nil`` () = test 106uy EmptyArray [||]
 
 [<TestFixture>]
 type ``Given a boolean`` () =

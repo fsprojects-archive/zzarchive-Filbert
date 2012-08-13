@@ -115,7 +115,7 @@ let rec encodeBert (stream : Stream) bert =
     | Integer(n)        -> encodeInt n stream
     | Float(f)          -> encodeFloat f stream
     | Atom(str)         -> encodeAtom str stream
-    | Nil               -> stream |> writeOneByte Tags.nil
+    | Nil               -> encodeNil stream
     | ByteList(bytes)   -> encodeByteList bytes stream
     | Binary(bytes)     -> encodeBinary bytes stream
     | List(berts)       -> encodeList berts stream
@@ -123,7 +123,7 @@ let rec encodeBert (stream : Stream) bert =
     | BigInteger(n)     -> encodeBigInt n stream
 
     // complex types
-    | EmptyArray        -> encodeEmptyArray stream
+    | EmptyArray        -> stream |> writeOneByte Tags.nil
     | Boolean(b)        -> encodeBoolean b stream
     | Dictionary(map)   -> encodeDictionary map stream
     | Time(t)           -> encodeTime t stream
@@ -154,8 +154,8 @@ and encodeTuple (berts : Bert[]) (stream : Stream) =
         
     berts |> Array.iter (encodeBert stream)
 
-/// Encodes an empty array
-and encodeEmptyArray = encodeTuple [| Atom(Constants.bert); Atom(Constants.nil) |]
+/// Encodes a nil
+and encodeNil = encodeTuple [| Atom(Constants.bert); Atom(Constants.nil) |]
 
 /// Encodes a boolean
 and encodeBoolean b =

@@ -65,13 +65,13 @@ type Bert =
     | Float         of float    // 8.1516
     | Atom          of string   // foo
     | Tuple         of Bert[]   // { coord, 23, 42 }
-    | Nil                       // this is the primitive Nil    
+    | EmptyArray                // this is the primitive Nil, which in Erlang equals to []
     | ByteList      of byte[]   // [ 1, 2, 3 ]
     | List          of Bert[]   // [ a, [ 1, 2 ] ]
     | Binary        of byte[]   // <<"Roses are red\0Violets are blue">>
 
     // complex types
-    | EmptyArray                // { bert, nil }
+    | Nil                // { bert, nil }
     | Boolean       of bool     // { bert, true } or { bert, false }
     // Dictionary args : array of key * value tuple, key and value can both be any BERT term
     | Dictionary    of Map<Bert, Bert>  // { bert, dict, [{name, <<"Tom">>}, {age, 30}]}

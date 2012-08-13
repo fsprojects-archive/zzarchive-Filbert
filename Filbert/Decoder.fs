@@ -61,7 +61,7 @@ let readComplexBert (items : Bert[]) =
     | [| Atom(Constants.bert); Atom(Constants.false') |]
         -> Boolean false
     | [| Atom(Constants.bert); Atom(Constants.nil)    |]
-        -> EmptyArray
+        -> Nil
     | [| Atom(Constants.bert); Atom(Constants.time); Integer(mega); Integer(sec); Integer(micro) |]
         -> toDateTime mega sec micro |> Time
     | [| Atom(Constants.bert); Atom(Constants.dict); List(arr) |]
@@ -98,7 +98,7 @@ let rec decodeType (stream : Stream) : Bert =
     | Tags.largeTuple   -> let arity = stream |> readBytes 4 |> bigEndianUinteger |> int64
                            stream |> readTuple arity
     // NIL
-    | Tags.nil          -> Nil
+    | Tags.nil          -> EmptyArray
     // STRING (list of bytes)
     | Tags.string       -> let len = stream |> readBytes 2 |> bigEndianUshort |> int
                            if len > Constants.maxStringLength 

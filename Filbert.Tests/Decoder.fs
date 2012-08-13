@@ -137,11 +137,11 @@ type ``Given a large tuple`` () =
         test byteVals expected
 
 [<TestFixture>]
-type ``Given a nill`` () =
+type ``Given a primitive nil`` () =
     let test = test 106uy
 
     [<Test>]
-    member x.``when received nil it should return None`` () = test [||] Nil
+    member x.``it should return empty array `` () = test [||] EmptyArray
 
 [<TestFixture>]
 type ``Given a string (bytelist)`` () =
@@ -249,10 +249,10 @@ type ``Given a complex BERT`` () =
         test byteVals (Boolean false)
 
     [<Test>]
-    member x.``when it's { bert, nil } it should return empty array`` () =
+    member x.``when it's { bert, nil } it should return nil`` () =
         let byteVals = [| 2uy; 100uy; 0uy; 4uy; 98uy; 101uy; 114uy; 116uy; 100uy; 0uy; 
                           3uy; 110uy; 105uy; 108uy |]
-        test byteVals EmptyArray
+        test byteVals Nil
 
     [<Test>]
     member this.``when it's { bert, time, 1255, 295581, 446228 } it should return 2009-10-11 14:12:01 and 446,228 microseconds`` () =
