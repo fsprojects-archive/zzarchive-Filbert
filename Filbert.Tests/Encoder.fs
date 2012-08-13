@@ -16,7 +16,7 @@ let test tag bert expected =
     encode bert stream
 
     let actual = stream.ToArray()
-    actual |> should equal <| (expected |> Array.append [| 131uy; tag |])
+    actual |> should equal (expected |> Array.append [| 131uy; tag |])
 
 [<TestFixture>]
 type ``Given an integer`` () =
@@ -198,6 +198,11 @@ type ``Given a list`` () =
 
 [<TestFixture>]
 type ``Given a big integer`` () =
+    let getBigInt digits digit = 
+        seq { 0..digits - 1 } |> Seq.sumBy (fun i -> digit * (256I ** i))
+
+    // #region optimized to SMALL_INTEGER_EXT/INTEGER_EXT
+
     [<Test>]
     member x.``when it's 0 it should return SMALL_INTEGER_EXT 0`` () =
         test 97uy (BigInteger 0I) [| 0uy |]
@@ -215,12 +220,16 @@ type ``Given a big integer`` () =
         test 98uy (BigInteger 256I) [| 0uy; 0uy; 1uy; 0uy |]
 
     [<Test>]
-    member x.``when it's 2147483647 it should return INT_EXT 2147483647`` () =
+    member x.``when it's 2147483647 it should return INTEGER_EXT 2147483647`` () =
         test 98uy (BigInteger 2147483647I) [| 127uy; 255uy; 255uy; 255uy |]
 
     [<Test>]
-    member x.``when it's -2147483648 it should return INT_EXT -2147483648`` () =
+    member x.``when it's -2147483648 it should return INTEGER_EXT -2147483648`` () =
         test 98uy (BigInteger -2147483648I) [| 128uy; 0uy; 0uy; 0uy |]
+
+    //#endregion
+
+    // #region SMALL_BIG_EXT range
 
     [<Test>]
     member x.``when it's 2147483648 it should return SMALL_BIG_EXT 2147483648`` () =
@@ -228,7 +237,41 @@ type ``Given a big integer`` () =
 
     [<Test>]
     member x.``when it's -2147483649 it should return SMALL_BIG_EXT -2147483649`` () =
-        test 110uy (BigInteger 2147483649I) [| 4uy; 1uy; 1uy; 0uy; 0uy; 128uy |]
+        test 110uy (BigInteger -2147483649I) [| 4uy; 1uy; 1uy; 0uy; 0uy; 128uy |]
+
+    [<Test>]
+    member x.``when it's 4294967295 it should return SMALL_BIG_EXT 4294967295`` () =
+        test 110uy (BigInteger 4294967295I) [| 4uy; 0uy; 255uy; 255uy; 255uy; 255uy |]
+
+    [<Test>]
+    member x.``when it's 9223372036854775807 it should return SMALL_BIG_EXT 9223372036854775807`` () =
+        test 110uy (BigInteger 9223372036854775807I) [| 8uy; 0uy; 255uy; 255uy; 255uy; 255uy; 255uy; 255uy; 255uy; 127uy |]
+
+    [<Test>]
+    member x.``when it's 9223372036854775808 it should return SMALL_BIG_EXT 9223372036854775808`` () =
+        test 110uy (BigInteger 9223372036854775808I) [| 8uy; 0uy; 0uy; 0uy; 0uy; 0uy; 0uy; 0uy; 0uy; 128uy |]
+
+    [<Test>]
+    member x.``when it's -9223372036854775808 it should return SMALL_BIG_EXT -9223372036854775808`` () =
+        test 110uy (BigInteger -9223372036854775808I) [| 8uy; 1uy; 0uy; 0uy; 0uy; 0uy; 0uy; 0uy; 0uy; 128uy |]
+
+    // #endregion
+
+    [<Test>]
+    member x.``when it's a positive large bigint it should return LARGE_BIG_EXT`` () =
+        let reallyBigInt = getBigInt 256 1I
+        let expected = [| 1..256 |] 
+                       |> Array.map (fun _ -> 1uy) 
+                       |> Array.append [| 0uy; 0uy; 1uy; 0uy; 0uy |]
+        test 111uy (BigInteger reallyBigInt) expected
+
+    [<Test>]
+    member x.``when it's a negative large bigint it should return LARGE_BIG_EXT`` () =
+        let reallyBigInt = getBigInt 256 1I * -1I
+        let expected = [| 1..256 |] 
+                       |> Array.map (fun _ -> 1uy) 
+                       |> Array.append [| 0uy; 0uy; 1uy; 0uy; 1uy |]
+        test 111uy (BigInteger reallyBigInt) expected
 
 [<TestFixture>]
 type ``Given an empty array`` () =
