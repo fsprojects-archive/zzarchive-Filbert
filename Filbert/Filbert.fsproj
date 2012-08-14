@@ -39,6 +39,7 @@
     <Reference Include="System.Numerics" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AssemblyInfo.fs" />
     <Compile Include="Core.fs" />
     <Compile Include="Decoder.fsi" />
     <Compile Include="Decoder.fs" />

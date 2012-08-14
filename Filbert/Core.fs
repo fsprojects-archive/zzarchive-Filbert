@@ -1,6 +1,7 @@
 ﻿namespace Filbert.Core
 
 open System
+open System.Collections.Generic
 open System.Numerics
 
 [<RequireQualifiedAccess>]
@@ -77,6 +78,10 @@ type Bert =
     | Dictionary    of Map<Bert, Bert>  // { bert, dict, [{name, <<"Tom">>}, {age, 30}]}
     // Time args : megaseconds (millions of seconds) * seconds * microseconds (millionth of a second)
     | Time          of DateTime         // { bert, time, 1255, 295581, 446228 }
+
+    /// Creates a new Dictionary
+    static member FromDict dict = 
+        (dict :> seq<_>) |> Seq.map (| KeyValue |) |> Map.ofSeq |> Dictionary
 
 [<AutoOpen>]
 module Exceptions =
