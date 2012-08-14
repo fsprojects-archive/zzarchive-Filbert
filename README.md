@@ -28,4 +28,4 @@ In addition, BERT also specifies a number of complex types as tuples whose first
 * **time** : { bert, time, 1255, 295581, 446228 }, equals to 1255 megaseconds (millions of secons) + 295581 seconds + 446228 microseconds (millionths of a second, or 10 ticks) since the Unix Epoch time (1970 Jan 1st).
 
 ## How does it work?
-Please see the [wiki page] (https://github.com/theburningmonk/Filbert/wiki) for a quick tutorial on how to use __Filbert__.
+Please see the [wiki page] (https://github.com/theburningmonk/Filbert/wiki/Tutorial) for a quick tutorial on how to use __Filbert__.
