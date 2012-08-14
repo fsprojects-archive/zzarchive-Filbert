@@ -71,12 +71,12 @@ type Bert =
     | Binary        of byte[]   // <<"Roses are red\0Violets are blue">>
 
     // complex types
-    | Nil                // { bert, nil }
+    | Nil                       // { bert, nil }
     | Boolean       of bool     // { bert, true } or { bert, false }
-    // Dictionary args : array of key * value tuple, key and value can both be any BERT term
+    // Dictionary args : a map where both key and value can be any BERT term
     | Dictionary    of Map<Bert, Bert>  // { bert, dict, [{name, <<"Tom">>}, {age, 30}]}
     // Time args : megaseconds (millions of seconds) * seconds * microseconds (millionth of a second)
-    | Time          of DateTime  // { bert, time, 1255, 295581, 446228 }
+    | Time          of DateTime         // { bert, time, 1255, 295581, 446228 }
 
 [<AutoOpen>]
 module Exceptions =
