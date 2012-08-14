@@ -40,7 +40,9 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Core.fs" />
+    <Compile Include="Decoder.fsi" />
     <Compile Include="Decoder.fs" />
+    <Compile Include="Encoder.fsi" />
     <Compile Include="Encoder.fs" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\FSharp\1.0\Microsoft.FSharp.Targets" Condition="!Exists('$(MSBuildBinPath)\Microsoft.Build.Tasks.v4.0.dll')" />
