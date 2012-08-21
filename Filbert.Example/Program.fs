@@ -3,6 +3,7 @@ open System.IO
 open Filbert.Core
 open Filbert.Encoder
 open Filbert.Decoder
+open Filbert.RpcClient
 
 [<EntryPoint>]
 let main args =
@@ -23,6 +24,8 @@ let main args =
     match bert = bert' with
     | true  -> printfn "decoded successfully, they're a match!"
     | false -> printfn "back to work YC *cracks whip*"
+
+    call("nat", "add", List [| Integer 1; Integer 2|])
 
     printfn "Press any key to exit.."
     

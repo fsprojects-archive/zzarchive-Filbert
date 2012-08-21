@@ -12,7 +12,7 @@ let getBigEndianBytes n (f : 'a -> byte[]) =
     if BitConverter.IsLittleEndian then f n |> Array.rev else f n
 
 /// Converts a signed 32-bit integer into a byte array
-let getBigEndianBytesInt (n : int) = getBigEndianBytes n BitConverter.GetBytes
+let internal getBigEndianBytesInt (n : int) = getBigEndianBytes n BitConverter.GetBytes
 
 /// Converts an unsigned 32-bit integer into a byte array
 let getBigEndianBytesUint (n : uint32) = getBigEndianBytes n BitConverter.GetBytes
