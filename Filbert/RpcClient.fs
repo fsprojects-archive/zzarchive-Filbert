@@ -1,4 +1,4 @@
-﻿module Filbert.RpcClient
+﻿namespace Filbert.Rpc
 
 open System.IO
 open System.Net.Sockets
@@ -28,45 +28,87 @@ type ErrorType =
         | Proxy(n)      -> sprintf "Proxy error code : %d" n
         | _             -> sprintf "Unknown error code : %A" this
 
-let encodeBERP action modName funName args (stream : Stream) =
-    // encode the request into a BERT tuple, e.g. { call, nat, add, [1, 2] }
-    let reqBert = Tuple [| Atom action; Atom modName; Atom funName; args |]
+exception UndesignatedProtocolException
+exception UnableToReadHeaderException
+exception UnableToReadDataException
+exception UndesignatedServerException
+exception NoSuchModuleException
+exception NoSuchFunctionException
 
-    // encode the request BERT
-    use memStream = new MemoryStream()
-    encode reqBert memStream
+[<AutoOpen>]
+module BERP =
+    /// Encodes a BERP (Binary ERlang Packets) asynchronously
+    let encodeBERP action modName funName args (stream : Stream) =
+        // encode the request into a BERT tuple, e.g. { call, nat, add, [1, 2] }
+        let reqBert = Tuple [| Atom action; Atom modName; Atom funName; args |]
 
-    // how many bytes does the BERT take?
-    let header = getBigEndianBytesInt <| int memStream.Length
+        // encode the request BERT
+        use memStream = new MemoryStream()
+        encode reqBert memStream
+
+        // how many bytes does the BERT take?
+        let header = getBigEndianBytesInt <| int memStream.Length
     
-    async {
-        do! stream.AsyncWrite(header)
-        do! stream.AsyncWrite(memStream.ToArray())
-    }
+        async {
+            do! stream.AsyncWrite(header)
+            do! stream.AsyncWrite(memStream.ToArray())
+        }
 
-let decodeBERP (stream : Stream) =
-    async {
-        // read the header (4 bytes)
-        let! header = stream.AsyncRead(4)
+    /// Decodes a BERP (Binary ERlang Packets) asynchronously
+    let decodeBERP (stream : Stream) =
+        async {
+            // read the header (4 bytes)
+            let! header = stream.AsyncRead(4)
 
-        let len = bigEndianInteger header
-        printf "Response BERT is %d bytes long" len
+            let len = bigEndianInteger header
+            printf "Response BERT is %d bytes long" len
 
-        return decode stream
-    }
+            return decode stream
+        }
 
-let call (modName : string, funName : string, args : Bert) =
-    async {
-        let client = new TcpClient("localhost", 9997)
-        use stream = client.GetStream()
+type BertRpcClient private (serviceUrl, port) = 
+    let call modName funName arg =
+        async {
+            use client = new TcpClient(serviceUrl, port)
+            use stream = client.GetStream()
 
-        do! encodeBERP "call" modName funName args stream
-        let! response = decodeBERP stream
+            do! encodeBERP "call" modName funName arg stream
+            let! response = decodeBERP stream
 
-        printf "Received %A" response
-    }
-    |> Async.RunSynchronously
+            match response with
+            | Tuple [| Atom "error"; _ as errorDetails |] 
+                -> printf "Error : %A" errorDetails
+            | _ -> printf "Received response : %A" response
+        }
+        |> Async.RunSynchronously
 
-let cast (moduleName : string, funName : string, args : Bert) =
-    let bert = Tuple [| Atom "cast"; Atom moduleName; Atom funName; args |]
-    ()
+    let cast moduleName funName arg =
+        async {
+            use client = new TcpClient(serviceUrl, port)
+            use stream = client.GetStream()
+
+            do! encodeBERP "cast" modName funName arg stream
+            let! response = decodeBERP stream
+
+            match response with
+            | Tuple [| Atom "error"; _ as errorDetails |] 
+                -> printf "Error : %A" errorDetails
+            | Tuple [| Atom "noreply" |] 
+                -> printfn "Request was successful"
+        }
+        |> Async.RunSynchronously
+
+    /// Static helper method to start a BERT rpc client
+    static member Start (serviceUrl, port) = RpcClient(serviceUrl, port)
+
+    /// Makes a synchronous request, this is mapped to a BERT tuple of the form:
+    ///     { call, modName, funName, arg }
+    /// e.g. { call, nat, add, [1, 2] }
+    /// Successful responses will be in the format of a BERT tuple { reply, Result }
+    member this.Call(modName, funName, arg) = call modName funName arg
+
+    /// Makes an asynchronous request (fire-and-forget), this is mapped to a BERT tuple
+    /// of the form:
+    ///     { cast, modName, funName, arg }
+    /// e.g. { cast, nat, die, 666 }
+    member this.Cast(modName, funName, arg) = cast modName funName arg
