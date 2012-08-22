@@ -71,10 +71,20 @@ type BertRpcClient private (serviceUrl, port) =
     ///     { call, modName, funName, arg }
     /// e.g. { call, nat, add, [1, 2] }
     /// Successful responses will be in the format of a BERT tuple { reply, Result }
-    member this.Call(modName, funName, [<System.ParamArrayAttribute>] args) = call modName funName args
+    member this.Call(modName, funName, [<System.ParamArrayAttribute>] args) = 
+        call modName funName args
+
+    /// Makes a synchronous request and returns the response as a Task<Bert>
+    member this.CallAsTask(modName, funName, [<System.ParamArrayAttribute>] args) = 
+        this.Call(modName, funName, args) |> Async.StartAsTask
 
     /// Makes an asynchronous request (fire-and-forget), this is mapped to a BERT tuple
     /// of the form:
     ///     { cast, modName, funName, arg }
     /// e.g. { cast, nat, die, [ 666 ] }
-    member this.Cast(modName, funName, [<System.ParamArrayAttribute>] args) = cast modName funName args
+    member this.Cast(modName, funName, [<System.ParamArrayAttribute>] args) = 
+        cast modName funName args
+
+    /// Makes an asynchronous request (fire-and-forget) and returns a Task<unit>
+    member this.CastAsTask(modName, funName, [<System.ParamArrayAttribute>] args) = 
+        this.Cast(modName, funName, args) |> Async.StartAsTask

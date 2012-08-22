@@ -25,12 +25,15 @@ let main args =
     | true  -> printfn "decoded successfully, they're a match!"
     | false -> printfn "back to work YC *cracks whip*"
 
-    printfn "Making rpc call"
+    printfn "Making synchronous rpc call"
     
     let client = BertRpcClient.Start("localhost", 9997)
     let result = client.Call("nat", "add", Integer 1, Integer 100) |> Async.RunSynchronously
 
     printfn "Got %O" result
+
+    printfn "Making asynchronous rpc call"
+    client.Cast("nat", "die", Integer 666) |> Async.RunSynchronously
 
     printfn "Press any key to exit.."
     

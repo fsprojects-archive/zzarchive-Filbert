@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using Filbert.Core;
+using Filbert.Rpc;
 
 namespace Filbert.ExampleCs
 {
@@ -41,10 +42,22 @@ namespace Filbert.ExampleCs
                 {
                     Console.WriteLine("back to work YC *cracks whip*");
                 }
-
-                Console.WriteLine("Press any key to exit..");
-                Console.ReadKey();
             }
+
+            Console.WriteLine("Making synchronous RPC call");
+
+            var client = BertRpcClient.Start("localhost", 9997);
+            var result = client.CallAsTask("nat", "add", Bert.NewInteger(1), Bert.NewInteger(100))
+                               .Result;
+
+            Console.WriteLine("Got {0}", result);
+
+            Console.WriteLine("Making asynchronous RPC call");
+
+            client.CastAsTask("nat", "die", Bert.NewInteger(666)).Wait();
+
+            Console.WriteLine("Press any key to exit..");
+            Console.ReadKey();
         }
     }
 }
