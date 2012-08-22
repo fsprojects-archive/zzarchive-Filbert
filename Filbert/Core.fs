@@ -83,6 +83,22 @@ type Bert =
     static member FromDict dict = 
         (dict :> seq<_>) |> Seq.map (| KeyValue |) |> Map.ofSeq |> Dictionary
 
+    override this.ToString() =
+        match this with
+        | Integer(n)        -> string n
+        | BigInteger(bi)    -> string bi
+        | Float(f)          -> string f
+        | Atom(str)         -> str
+        | Tuple(arr)        -> sprintf "{ %s }" (arr |> Seq.map string |> Seq.reduce (fun acc elem -> acc + ", " + elem))
+        | List(arr)         -> sprintf "[ %s ]" (arr |> Seq.map string |> Seq.reduce (fun acc elem -> acc + ", " + elem))
+        | EmptyArray        -> "[]"
+        | ByteList(bytes)
+        | Binary(bytes)     -> sprintf "<<\"%s\">>" (System.Text.Encoding.ASCII.GetString bytes)
+        | Nil               -> "nil"
+        | Boolean(b)        -> string b
+        | Dictionary(map)   -> ""
+        | Time(dt)          -> string dt
+
 [<AutoOpen>]
 module Exceptions =
     // InsufficientNumberOfBytes args : required number of bytes, number of bytes read
