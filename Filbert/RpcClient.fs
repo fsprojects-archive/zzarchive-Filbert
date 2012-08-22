@@ -9,34 +9,15 @@ open Filbert.Decoder
 // make sure we don't have any arithmetic overflows
 open Checked
 
-/// Represents the different types of error that can be returned by the server
-type ErrorType =
-    | Protocol      of uint32
-    | Server        of uint32
-    | User          of uint32
-    | Proxy         of uint32
+exception UndesignatedProtocolException     of string * string * string
+exception UnableToReadHeaderException       of string * string * string
+exception UnableToReadDataException         of string * string * string
+exception UndesignatedServerException       of string * string * string
+exception NoSuchModuleException             of string * string * string
+exception NoSuchFunctionException           of string * string * string
+exception UnknownException                  of string
 
-    override this.ToString() =
-        match this with
-        | Protocol(0u)  -> "Undesignated"
-        | Protocol(1u)  -> "Unable to read header"
-        | Protocol(2u)  -> "Unable to read data"
-        | Server(0u)    -> "Undesignated"
-        | Server(1u)    -> "No such module"
-        | Server(2u)    -> "No such function"
-        | User(n)       -> sprintf "User error code : %d" n
-        | Proxy(n)      -> sprintf "Proxy error code : %d" n
-        | _             -> sprintf "Unknown error code : %A" this
-
-exception UndesignatedProtocolException
-exception UnableToReadHeaderException
-exception UnableToReadDataException
-exception UndesignatedServerException
-exception NoSuchModuleException
-exception NoSuchFunctionException
-
-[<AutoOpen>]
-module BERP =
+type BertRpcClient private (serviceUrl, port) = 
     /// Encodes a BERP (Binary ERlang Packets) asynchronously
     let encodeBERP action modName funName args (stream : Stream) =
         // encode the request into a BERT tuple, e.g. { call, nat, add, [1, 2] }
@@ -59,44 +40,49 @@ module BERP =
         async {
             // read the header (4 bytes)
             let! header = stream.AsyncRead(4)
-
-            let len = bigEndianInteger header
-            printf "Response BERT is %d bytes long" len
-
             return decode stream
         }
 
-type BertRpcClient private (serviceUrl, port) = 
-    let call modName funName arg =
-        async {
-            use client = new TcpClient(serviceUrl, port)
-            use stream = client.GetStream()
+    let handleError = 
+        function 
+        | Tuple [| Atom "server"; Integer 0; Binary cls; Binary detail; Binary backTrace |] 
+            -> raise <| UndesignatedServerException(string cls, string detail, string backTrace)
+        | Tuple [| Atom "server"; Integer 1; Binary cls; Binary detail; Binary backTrace |] 
+            -> raise <| NoSuchModuleException(string cls, string detail, string backTrace)
+        | Tuple [| Atom "server"; Integer 2; Binary cls; Binary detail; Binary backTrace |] 
+            -> raise <| NoSuchFunctionException(string cls, string detail, string backTrace)
+        | Tuple [| Atom "protocol"; Integer 0; Binary cls; Binary detail; Binary backTrace |] 
+            -> raise <| UndesignatedProtocolException(string cls, string detail, string backTrace)
+        | Tuple [| Atom "protocol"; Integer 1; Binary cls; Binary detail; Binary backTrace |] 
+            -> raise <| UnableToReadHeaderException(string cls, string detail, string backTrace)
+        | Tuple [| Atom "protocol"; Integer 2; Binary cls; Binary detail; Binary backTrace |] 
+            -> raise <| UnableToReadDataException(string cls, string detail, string backTrace)
+        | unknown -> raise <| UnknownException(string unknown)
 
-            do! encodeBERP "call" modName funName arg stream
+    // makes a RPC call
+    let rpc encode =
+        async {
+            let client = new TcpClient(serviceUrl, port)
+            let stream = client.GetStream()
+
+            // encodes the request BERP into the network stream
+            do! encode stream
+
+            // now wait for and decode the response
             let! response = decodeBERP stream
 
-            match response with
-            | Tuple [| Atom "error"; _ as errorDetails |] 
-                -> printf "Error : %A" errorDetails
-            | _ -> printf "Received response : %A" response
-        }
-        |> Async.RunSynchronously
-
-    let cast modName funName arg =
-        async {
-            use client = new TcpClient(serviceUrl, port)
-            use stream = client.GetStream()
-
-            do! encodeBERP "cast" modName funName arg stream
-            let! response = decodeBERP stream
+            stream.Close()
+            client.Close()
 
             match response with
-            | Tuple [| Atom "error"; _ as errorDetails |] 
-                -> printf "Error : %A" errorDetails
-            | Tuple [| Atom "noreply" |] 
-                -> printfn "Request was successful"
+            | Tuple [| Atom "error"; _ as errorDetails |] -> handleError errorDetails
+            | _                                           -> ()
+
+            return response
         }
-        |> Async.RunSynchronously
+
+    let call modName funName arg = async { return! rpc (encodeBERP "call" modName funName arg) }
+    let cast modName funName arg = async { do! rpc (encodeBERP "cast" modName funName arg) |> Async.Ignore }
 
     /// Static helper method to start a BERT rpc client
     static member Start (serviceUrl, port) = BertRpcClient(serviceUrl, port)

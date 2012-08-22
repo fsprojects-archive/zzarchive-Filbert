@@ -3,7 +3,7 @@ open System.IO
 open Filbert.Core
 open Filbert.Encoder
 open Filbert.Decoder
-open Filbert.RpcClient
+open Filbert.Rpc
 
 [<EntryPoint>]
 let main args =
@@ -25,7 +25,12 @@ let main args =
     | true  -> printfn "decoded successfully, they're a match!"
     | false -> printfn "back to work YC *cracks whip*"
 
-    call("nat", "add", List [| Integer 1; Integer 2|])
+    printfn "Making rpc call"
+    
+    let client = BertRpcClient.Start("localhost", 9997)
+    let result = client.Call("nat", "add", List [| Integer 5; Integer 2 |]) |> Async.RunSynchronously
+
+    printfn "Got %O" result
 
     printfn "Press any key to exit.."
     
