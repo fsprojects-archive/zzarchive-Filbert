@@ -28,7 +28,7 @@ let main args =
     printfn "Making rpc call"
     
     let client = BertRpcClient.Start("localhost", 9997)
-    let result = client.Call("nat", "add", List [| Integer 5; Integer 2 |]) |> Async.RunSynchronously
+    let result = client.Call("nat", "add", Integer 1, Integer 100) |> Async.RunSynchronously
 
     printfn "Got %O" result
 
