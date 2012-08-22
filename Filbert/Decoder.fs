@@ -12,7 +12,7 @@ let readBigEndian f arr =
     if BitConverter.IsLittleEndian then f(arr |> Array.rev, 0) else f(arr, 0)
 
 /// Converts a byte array with 4 elements into an int
-let bigEndianInteger arr = arr |> readBigEndian BitConverter.ToInt32
+let internal bigEndianInteger arr = arr |> readBigEndian BitConverter.ToInt32
 
 /// Converts a byte array with 4 elements into an uint32
 let bigEndianUinteger arr = arr |> readBigEndian BitConverter.ToUInt32
