@@ -1,4 +1,4 @@
-﻿namespace Filbert.Rpc
+﻿module Filbert.Rpc
 
 open System
 open System.IO

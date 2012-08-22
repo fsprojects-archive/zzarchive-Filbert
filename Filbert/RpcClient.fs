@@ -82,7 +82,7 @@ type BertRpcClient private (serviceUrl, port) =
         }
         |> Async.RunSynchronously
 
-    let cast moduleName funName arg =
+    let cast modName funName arg =
         async {
             use client = new TcpClient(serviceUrl, port)
             use stream = client.GetStream()
@@ -99,7 +99,7 @@ type BertRpcClient private (serviceUrl, port) =
         |> Async.RunSynchronously
 
     /// Static helper method to start a BERT rpc client
-    static member Start (serviceUrl, port) = RpcClient(serviceUrl, port)
+    static member Start (serviceUrl, port) = BertRpcClient(serviceUrl, port)
 
     /// Makes a synchronous request, this is mapped to a BERT tuple of the form:
     ///     { call, modName, funName, arg }
