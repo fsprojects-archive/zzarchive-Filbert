@@ -2,7 +2,7 @@
 
 ## Introduction
 
-Filbert is a simple **BERT** serializer for .Net, written in F#.
+Filbert is a simple **BERT** serializer and **BERT-RPC** client for .Net, written in F#.
 
 ## What is BERT?
 
