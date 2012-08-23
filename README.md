@@ -29,3 +29,7 @@ In addition, BERT also specifies a number of complex types as tuples whose first
 
 ## How does it work?
 Please see the [wiki page] (https://github.com/theburningmonk/Filbert/wiki) for a quick tutorial on how to use __Filbert__.
+
+## NuGet
+
+Download and install **Filbert** using [NuGet](http://nuget.org/packages/Filbert).
