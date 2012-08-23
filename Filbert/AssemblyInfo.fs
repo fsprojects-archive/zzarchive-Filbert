@@ -6,7 +6,8 @@ open System.Runtime.InteropServices
 
 [<assembly: ComVisible(false)>]
 
-[<assembly: Guid ("3e5da09d-c2db-4853-a689-0cdb17310ecf") >]
+[<assembly: AssemblyCompany("Yan Cui")>] 
+[<assembly: Guid ("3e5da09d-c2db-4853-a689-0cdb17310ecf")>]
 [<assembly: AssemblyCopyright("Copyright @ Yan Cui 2012")>]
 
 [<assembly: AssemblyTitle("BERT serializer for .Net")>]
