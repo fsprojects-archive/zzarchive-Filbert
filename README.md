@@ -32,4 +32,6 @@ Please see the [wiki page] (https://github.com/theburningmonk/Filbert/wiki) for 
 
 ## NuGet
 
-Download and install **Filbert** using [NuGet](http://nuget.org/packages/Filbert).
+Download and install **Filbert** using [NuGet](https://nuget.org/packages/Filbert).
+
+<a href="https://nuget.org/packages/Filbert"><img src="http://theburningmonk.com/images/filbert-nuget-install.png" alt="NuGet package"/></a>
