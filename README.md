@@ -35,3 +35,6 @@ Please see the [wiki page] (https://github.com/theburningmonk/Filbert/wiki) for 
 Download and install **Filbert** using [NuGet](https://nuget.org/packages/Filbert).
 
 <a href="https://nuget.org/packages/Filbert"><img src="http://theburningmonk.com/images/filbert-nuget-install.png" alt="NuGet package"/></a>
+
+## Updates
+Follow the official twitter account [@FilbertFs](https://twitter.com/FilbertFs) for updates!
