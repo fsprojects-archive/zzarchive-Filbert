@@ -1,0 +1,184 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <title>Filbert by theburningmonk</title>
+
+    <link rel="stylesheet" href="stylesheets/styles.css">
+    <link rel="stylesheet" href="stylesheets/pygment_trac.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+    <!--[if lt IE 9]>
+    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+  </head>
+  <body>
+    <div class="wrapper">
+      <header>
+        <h1>Filbert</h1>
+        <p>A BERT serializer and BERT-RPC client for .Net, written in F#</p>
+
+        <p class="view"><a href="https://github.com/theburningmonk/Filbert">View the Project on GitHub <small>theburningmonk/Filbert</small></a></p>
+
+
+        <ul>
+          <li><a href="https://github.com/theburningmonk/Filbert/zipball/master">Download <strong>ZIP File</strong></a></li>
+          <li><a href="https://github.com/theburningmonk/Filbert/tarball/master">Download <strong>TAR Ball</strong></a></li>
+          <li><a href="https://github.com/theburningmonk/Filbert">View On <strong>GitHub</strong></a></li>
+        </ul>
+      </header>
+      <section>
+        <p>Filbert is a simple <strong>BERT</strong> serializer and <strong>BERT-RPC</strong> client for .Net, written in F#.</p>
+
+<h3>
+<a name="what-is-bert" class="anchor" href="#what-is-bert"><span class="octicon octicon-link"></span></a>What is BERT?</h3>
+
+<p><a href="http://bert-rpc.org/">BERT</a> is a flexible binary serialization format using the same encoding format as Erlang's <a href="http://erlang.org/doc/apps/erts/erl_ext_dist.html">external term format</a> but supports only the following data types:</p>
+
+<ul>
+<li>
+<strong>SMALL_INTEGER_EXT</strong> (tag 97) : unsigned 8-bit integer.</li>
+<li>
+<strong>INTEGER_EXT</strong> (tag 98) : signed 32-bit integer in big-endian format (MSB first).</li>
+<li>
+<strong>FLOAT_EXT</strong> (tag 99) : a float stored in scientific string format, e.g. .ToString("e20").</li>
+<li>
+<strong>ATOM_EXT</strong> (tag 100) : an Erlang atom, the maximum allowed length for atom is 255.</li>
+<li>
+<strong>SMALL_TUPLE_EXT</strong> (tag 104) : a tuple with up to 255 elements.</li>
+<li>
+<strong>LARGE_TUPLE_EXT</strong> (tag 105) : same as SMALL_TUPLE_EXT but supports up to 4294967295 (uint.MaxValue) elements.</li>
+<li>
+<strong>NIL_EXT</strong> (tag 106) : represents an empty list.</li>
+<li>
+<strong>STRING_EXT</strong> (tag 107) : string does NOT have a corresponding Erlang representation, but is an optimization for sending lists of bytes, the maximum number of bytes in the string is 65534.</li>
+<li>
+<strong>LIST_EXT</strong> (tag 108) : a list of elements of any type specified in this list, supports up to 4294967295 elements. For the sake of simplicity, <strong>Filbert</strong> does not support improper lists ([a|b]) right now.</li>
+<li>
+<strong>BINARY_EXT</strong> (tag 109) : supports up to 4294967295 bytes.</li>
+<li>
+<strong>SMALL_BIG_EXT</strong> (tag 110) : big integer up to +/- 255*256^254.</li>
+<li>
+<strong>LARGE_BIG_EXT</strong> (tag 111) : big integer up to +/- 4294967295*256^4294967294!</li>
+</ul><p>In addition, BERT also specifies a number of complex types as tuples whose first item is the atom <strong>bert</strong>:</p>
+
+<ul>
+<li>
+<strong>nil</strong> : { bert, nil }, the equivalent of null/nil in other languages. (Erlang associated the primitive <strong>nil</strong> with the empty array [] only)</li>
+<li>
+<strong>boolean</strong> : { bert, true } or { bert, false } for <strong>true</strong> and <strong>false</strong> respectively.</li>
+<li>
+<strong>dictionary</strong> : { bert, dict, [{name, &lt;&lt;"Yan"&gt;&gt;}, {nick, theburningmonk}] }, a dictionary is represented as a tuple with 3 items - the atoms <strong>bert</strong> and <strong>dict</strong> followed by a list of 2 item tuples each representing a key-value pair.</li>
+<li>
+<strong>time</strong> : { bert, time, 1255, 295581, 446228 }, equals to 1255 megaseconds (millions of secons) + 295581 seconds + 446228 microseconds (millionths of a second, or 10 ticks) since the Unix Epoch time (1970 Jan 1st).</li>
+</ul><h3>
+<a name="encodingdecoding" class="anchor" href="#encodingdecoding"><span class="octicon octicon-link"></span></a>Encoding/Decoding</h3>
+
+<p><code>F#</code></p>
+
+<pre><code>let mysterWord = [| 131uy; 107uy; 0uy; 8uy; 104uy; 97uy; 122uy; 101uy; 108uy; 110uy; 117uy; 116uy |]
+let bert = Dictionary(Map.ofList [(Atom "Filbert", Atom "means"); (ByteList mysterWord, Atom "!")])    
+
+// encode this BERT
+use memStream = new MemoryStream()
+Filbert.Encoder.encode bert memStream
+
+// now decode it
+memStream.Position &lt;- 0L
+let bert' = Filbert.Decoder.decode memStream
+</code></pre>
+
+<p>The full example is available in the F# example project <a href="https://github.com/theburningmonk/Filbert/blob/master/Filbert.Example/Program.fs">here</a>.</p>
+
+<p><code>C#</code></p>
+
+<pre><code>// create a new BERT
+var mysterWord = new byte[] { 131, 107, 0, 8, 104, 97, 122, 101, 108, 110, 117, 116 };
+var dict = new Dictionary&lt;Bert, Bert&gt;
+{
+    { Bert.NewAtom("Filbert"), Bert.NewAtom("means") },
+    { Bert.NewByteList(mysterWord), Bert.NewAtom("!") }
+};
+
+// there's also a helper static method 'FromDict' which constructs a new Bert.Dictionary using
+// a standard dictionary type
+var bert = Bert.FromDict(dict);
+
+using (var memStream = new MemoryStream())
+{
+    // encode the BERT
+    Filbert.Encoder.encode(bert, memStream);
+}
+
+// now decode it
+memStream.Position = 0;
+var bertClone = Filbert.Decoder.decode(memStream);
+</code></pre>
+
+<p>The full example is available in the C# example project <a href="https://github.com/theburningmonk/Filbert/blob/master/Filbert.ExampleCs/Program.cs">here</a></p>
+
+<h3>
+<a name="making-bert-rpc-calls" class="anchor" href="#making-bert-rpc-calls"><span class="octicon octicon-link"></span></a>Making BERT-RPC Calls</h3>
+
+<p>For more information regarding how BERT-RPC works, please refer to the <a href="http://bert-rpc.org/">BERT-RPC spec</a>.</p>
+
+<p>Suppose there is a <code>nat</code> Erlang module running on the BERT-RPC server, which looks like this:</p>
+
+<pre><code>-module(nat).
+-export([add/2]).
+
+add(A, B) -&gt; A + B.
+</code></pre>
+
+<p><code>F#</code></p>
+
+<pre><code>let client = Filbert.Rpc.BertRpcClient.Start(serviceUrl, portNumber)
+
+// synchronous example
+let result = client.Call("nat", "add", Integer 1, Integer 100) |&gt; Async.RunSynchronously
+
+// asynchronous example
+async {
+    let! result = client.Call("nat", "add", Integer 1, Integer 100)
+    ... // do something with the result, printf, etc.
+}
+|&gt; Async.Start
+</code></pre>
+
+<p>The full example is available in the F# example project <a href="https://github.com/theburningmonk/Filbert/blob/master/Filbert.Example/Program.fs">here</a>.</p>
+
+<p><code>C#</code></p>
+
+<pre><code>var client = Filbert.Rpc.BertRpcClient.Start(serviceUrl, portNumber)
+
+// synchronous example
+var result = client.CallAsTask("nat", "add", Bert.NewInteger(1), Bert.NewInteger(100))
+                   .Result;
+
+// asynchronous example (provided that this is an async method)
+var result2 = await client.CallAsTask("nat", "add", Bert.NewInteger(1), Bert.NewInteger(100));
+</code></pre>
+
+<p>The full example is available in the C# example project <a href="https://github.com/theburningmonk/Filbert/blob/master/Filbert.ExampleCs/Program.cs">here</a>.</p>
+
+<h3>
+<a name="nuget" class="anchor" href="#nuget"><span class="octicon octicon-link"></span></a>NuGet</h3>
+
+<p>Download and install <strong>Filbert</strong> using <a href="https://nuget.org/packages/Filbert">NuGet</a>.</p>
+
+<p><a href="https://nuget.org/packages/Filbert"><img src="http://theburningmonk.com/images/filbert-nuget-install.png" alt="NuGet package"></a></p>
+
+<h3>
+<a name="updates" class="anchor" href="#updates"><span class="octicon octicon-link"></span></a>Updates</h3>
+
+<p>Follow the official twitter account <a href="https://twitter.com/FilbertFs">@FilbertFs</a> for updates!</p>
+      </section>
+      <footer>
+        <p>This project is maintained by <a href="https://github.com/theburningmonk">theburningmonk</a></p>
+        <p><small>Hosted on GitHub Pages &mdash; Theme by <a href="https://github.com/orderedlist">orderedlist</a></small></p>
+      </footer>
+    </div>
+    <script src="javascripts/scale.fix.js"></script>
+    
+  </body>
+</html>
