@@ -38,3 +38,7 @@ Download and install **Filbert** using [NuGet](https://nuget.org/packages/Filber
 
 ## Updates
 Follow the official twitter account [@FilbertFs](https://twitter.com/FilbertFs) for updates!
+
+
+[![Bitdeli Badge](https://d2weczhvl823v0.cloudfront.net/theburningmonk/filbert/trend.png)](https://bitdeli.com/free "Bitdeli Badge")
+
