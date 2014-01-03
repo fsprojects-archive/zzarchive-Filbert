@@ -5,7 +5,7 @@ open System.Collections.Generic
 open System.Numerics
 
 [<RequireQualifiedAccess>]
-module Tags =    
+module Tags = 
     [<Literal>] 
     let smallInteger  = 97uy
     [<Literal>] 
@@ -96,11 +96,11 @@ type Bert =
         | Binary(bytes)     -> sprintf "<<\"%s\">>" (System.Text.Encoding.ASCII.GetString bytes)
         | Nil               -> "nil"
         | Boolean(b)        -> string b
-        | Dictionary(map)   -> ""
+        | Dictionary(map)   -> "" // TODO
         | Time(dt)          -> string dt
 
 [<AutoOpen>]
-module Exceptions =
+module Exceptions =    
     // InsufficientNumberOfBytes args : required number of bytes, number of bytes read
     exception InsufficientNumberOfBytes of int * int
     exception EndOfStreamReached
