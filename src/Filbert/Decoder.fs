@@ -8,14 +8,6 @@ open Filbert.Utils
 // make sure we don't have any arithmetic overflows
 open Checked
 
-[<AutoOpen>]
-module ArraySegmentReaders =
-    /// Reads some bytes into an array
-    let inline byteArrayReader n (seg : ArraySegment<byte>) = 
-        let arr = Array.zeroCreate<byte> n
-        Buffer.BlockCopy(seg.Array, seg.Offset, arr, 0, n)
-        arr
-
 /// Converts a byte array using the specified function using big endian
 let inline readBigEndian f arr = 
     // reverse the array in-place if the system is little endian
@@ -51,7 +43,7 @@ let inline readBigInt n (ctx : DecoderContext) =
         buffer |> Seq.mapi (fun i digit -> (byteToBigInt digit) * (256I ** i)) |> Seq.sum
 
     let sign = ctx.ReadByte() |> function | 0uy -> 1I | 1uy -> -1I
-    ctx.ReadBytes n |> byteArrayReader n |> bigInteger |> (fun n -> n * sign)
+    ctx.ReadBytes n |> bigInteger |> (fun n -> n * sign)
 
 /// Converts a set of megasecond, second and microsecond values into a DateTime value
 let inline toDateTime (mega : int) (sec :int) (micro : int) =
@@ -60,10 +52,10 @@ let inline toDateTime (mega : int) (sec :int) (micro : int) =
 [<AutoOpen>]
 module Decoders = 
     let decodeSmallInt = int >> Integer
-    let decodeInt      = byteArrayReader 4 >> bigEndianInteger >> Integer
-    let decodeFloat    = byteArrayReader 31 >> str >> float >> Float
-    let decodeUint     = byteArrayReader 4 >> bigEndianUinteger
-    let decodeUshort   = byteArrayReader 2 >> bigEndianUshort
+    let decodeInt      = bigEndianInteger >> Integer
+    let decodeFloat    = str >> float >> Float
+    let decodeUint     = bigEndianUinteger
+    let decodeUshort   = bigEndianUshort
 
 /// Reads a complex BERT type
 let inline readComplexBert (items : Bert[]) =
@@ -100,7 +92,7 @@ let rec decodeType (ctx : DecoderContext) : Bert =
                            match len with
                            | n when n > Constants.maxAtomLen -> raise <| InvalidAtomLength len
                            | 0 -> raise <| InvalidAtomLength len
-                           | n -> ctx.ReadBytes len |> byteArrayReader len |> str |> Atom
+                           | n -> ctx.ReadBytes len |> str |> Atom
     // SMALL_TUPLE
     | Tags.smallTuple   -> let arity = ctx.ReadByte() |> int
                            match arity with
@@ -115,7 +107,7 @@ let rec decodeType (ctx : DecoderContext) : Bert =
     | Tags.string       -> let len = ctx.ReadBytes 2 |> decodeUshort |> int
                            if len > Constants.maxStringLength 
                            then raise <| InvalidStringLength len
-                           else ctx.ReadBytes len |> byteArrayReader len |> ByteList
+                           else ctx.ReadBytes len |> ByteList
     // LIST
     | Tags.list         -> let len = ctx.ReadBytes 4 |> decodeUint |> int
                            let berts = ctx |> readBerts len
@@ -130,7 +122,7 @@ let rec decodeType (ctx : DecoderContext) : Bert =
     | Tags.binary       -> let len = ctx.ReadBytes 4 |> decodeUint |> int
                            match len with 
                            | 0 -> Binary [||]
-                           | n -> ctx.ReadBytes n |> byteArrayReader n |> Binary
+                           | n -> ctx.ReadBytes n |> Binary
     // SMALL_BIG
     | Tags.smallBig     -> let n = ctx.ReadByte() |> int
                            ctx |> readBigInt n |> BigInteger

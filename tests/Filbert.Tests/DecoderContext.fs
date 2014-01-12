@@ -35,7 +35,7 @@ type ``Given a decoder context`` () =
         use memStream = new MemoryStream(input)
         use ctx       = new DecoderContext(memStream)
 
-        ctx.ReadBytes 3 |> should equal <| new ArraySegment<byte>(input, 0, 3)
+        ctx.ReadBytes 3 |> should equal <| [| 1uy; 2uy; 3uy |]
     
     [<Test>]
     [<ExpectedException(typeof<InsufficientNumberOfBytes>)>]
@@ -48,30 +48,28 @@ type ``Given a decoder context`` () =
 
     [<Test>]
     member test.``when there is insufficient data in buffer, more data should be loaded from stream and returned`` () =
-        let input     = [| 1..1025 |] |> Array.map (fun _ -> 1uy)
+        let input     = [| yield 1uy; for i = 1 to 1024 do yield 2uy |]
         use memStream = new MemoryStream(input)
         use ctx       = new DecoderContext(memStream)
 
         ctx.ReadByte()     |> should equal 1uy
-        ctx.ReadBytes 1024 |> should equal <| new ArraySegment<byte>(input, 1, 1024)
+        ctx.ReadBytes 1024 |> should equal <| [| for i = 1 to 1024 do yield 2uy |]
 
     [<Test>]
     member test.``when the buffer is not enough to hold data for the request, a bespoke array is used to load from stream`` () =
-        let input     = [| 1..3072 |] |> Array.map (fun _ -> 1uy)
+        let input     = [| for i = 1 to 1000 do yield 1uy
+                           for i = 1 to 2000 do yield 2uy
+                           for i = 1 to 72 do yield 3uy |]        
         use memStream = new MemoryStream(input)
         use ctx       = new DecoderContext(memStream)
 
         // this is coming from the first buffer
-        ctx.ReadBytes 1000 |> should equal <| new ArraySegment<byte>(input, 0, 1000)
+        ctx.ReadBytes 1000 |> should equal <| [| for i = 1 to 1000 do yield 1uy |]
 
         // this should be coming from a bespoke array
-        let seg = ctx.ReadBytes 2000 
-        seg.Array.Length |> should equal 2000
-        seg.Count        |> should equal 2000
-        seg.Offset       |> should equal 0
+        let arr = ctx.ReadBytes 2000 
+        arr |> should equal <| [| for i = 1 to 2000 do yield 2uy |]
 
         // the rest of the data in the stream is all in a new buffer
-        let seg = ctx.ReadBytes 72
-        seg.Array.Length |> should equal maxBufferSize
-        seg.Count        |> should equal 72
-        seg.Offset       |> should equal 0
+        let arr' = ctx.ReadBytes 72
+        arr' |> should equal <| [| for i = 1 to 72 do yield 3uy |]

@@ -71,16 +71,19 @@ type internal DecoderContext (stream : Stream) =
         bufferPool.Put buffer
         initBuffer()
 
-        new ArraySegment<byte>(arr, 0, n)
+        arr
 
     let rec readBytes n =
         if n > maxBufferSize then readLargeArray n
         else 
             let newIndex = index + n
             if newIndex <= bufferSize then
-                let seg = new ArraySegment<byte>(buffer, index, n)
-                index <- newIndex
-                seg
+                try
+                    let arr = Array.zeroCreate<byte> n
+                    Buffer.BlockCopy(buffer, index, arr, 0, n)
+                    arr
+                finally
+                    index <- newIndex
             else
                 swapBuffer()
                 if n > bufferSize then raise <| InsufficientNumberOfBytes(n, bufferSize)
