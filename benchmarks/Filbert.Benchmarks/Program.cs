@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Runtime.Serialization;
+using System.Runtime.Serialization.Formatters.Binary;
 
 using Filbert.Core;
 
@@ -28,19 +29,23 @@ namespace Filbert.Benchmark
 
         private static void Main(string[] args)
         {
-            // speed test protobuf-net
-            //DoSpeedTest(
-            //    "Protobuf-Net",
-            //    SimpleObjects,
-            //    SerializeWithProtobufNet,
-            //    DeserializeWithProtobufNet<SimpleObject>);
-
-            // speed test Filbert
             DoSpeedTest(
                 "Filbert",
                 BertSimpleObjects,
                 SerializeWithFilbert,
                 DeserializeWithFilbert);
+
+            DoSpeedTest(
+                "Protobuf-Net",
+                SimpleObjects,
+                SerializeWithProtobufNet,
+                DeserializeWithProtobufNet<SimpleObject>);
+
+            DoSpeedTest(
+                "BinaryFormatter",
+                SimpleObjects,
+                SerializeWithBinaryFormatter,
+                DeserializeWithBinaryFormatter<SimpleObject>);
         }
 
         private static Bert GetSimpleObjectBert(int id)
@@ -155,6 +160,39 @@ namespace Filbert.Benchmark
             using (var memStream = new MemoryStream(byteArray))
             {
                 return Filbert.Decoder.decode(memStream);
+            }
+        }
+
+        #endregion
+
+        #region BinaryFormatter
+
+        private static List<byte[]> SerializeWithBinaryFormatter<T>(List<T> objects)
+        {
+            var binaryFormatter = new BinaryFormatter();
+            return objects.Select(o => SerializeWithBinaryFormatter(binaryFormatter, o)).ToList();
+        }
+
+        private static byte[] SerializeWithBinaryFormatter<T>(BinaryFormatter binaryFormatter, T obj)
+        {
+            using (var memStream = new MemoryStream())
+            {
+                binaryFormatter.Serialize(memStream, obj);
+                return memStream.ToArray();
+            }
+        }
+
+        private static List<T> DeserializeWithBinaryFormatter<T>(List<byte[]> byteArrays)
+        {
+            var binaryFormatter = new BinaryFormatter();
+            return byteArrays.Select(arr => DeserializeWithBinaryFormatter<T>(binaryFormatter, arr)).ToList();
+        }
+
+        private static T DeserializeWithBinaryFormatter<T>(BinaryFormatter binaryFormatter, byte[] byteArray)
+        {
+            using (var memStream = new MemoryStream(byteArray))
+            {
+                return (T)binaryFormatter.Deserialize(memStream);
             }
         }
 
