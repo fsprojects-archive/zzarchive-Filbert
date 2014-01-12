@@ -94,7 +94,7 @@ let files includes =
     Excludes = [] } 
 
 Target "Build" (fun _ ->
-    files [ "src/Filibert/" + projectFile ]
+    files [ "src/Filbert/" + projectFile ]
     |> MSBuildRelease buildDir "Rebuild"
     |> ignore
 )
