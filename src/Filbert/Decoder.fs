@@ -159,7 +159,7 @@ and readTuple arity (ctx : DecoderContext) =
     | _                    -> Tuple berts
 
 let decode (stream : Stream) =
-    let ctx = new DecoderContext(stream)
+    use ctx = new DecoderContext(stream)
     match byteReader <| ctx.ReadByte() with
     | Constants.version -> decodeType ctx
     | n   -> raise <| InvalidVersion n

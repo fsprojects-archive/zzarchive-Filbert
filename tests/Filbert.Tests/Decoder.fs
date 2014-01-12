@@ -125,6 +125,16 @@ type ``Given a small tuple`` () =
         let expected = Tuple(Array.create<Bert> 255 (Integer 1))
         test byteVals expected
 
+    [<Test>]
+    member x.``when the tuple is of 2 thousand character long strings it should return the correct strings`` () =
+        let strByteVals = [| for i = 1 to 1000 do yield 97uy |]
+                          |> Array.append [| 107uy; 3uy; 232uy |]
+        let byteVals = [| yield 2uy; yield! strByteVals; yield! strByteVals |]
+
+        let expectedStr = [| for i = 1 to 1000 do yield 97uy |]        
+        let expected = Tuple([| ByteList expectedStr; ByteList expectedStr |])
+        test byteVals expected
+
 [<TestFixture>]
 type ``Given a large tuple`` () =
     let test = test 105uy

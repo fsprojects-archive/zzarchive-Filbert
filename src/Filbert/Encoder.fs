@@ -9,7 +9,9 @@ open Checked
 
 /// Converts a value to a byte array in big endian format using
 let getBigEndianBytes n (f : 'a -> byte[]) = 
-    if BitConverter.IsLittleEndian then f n |> Array.rev else f n
+    let bytes = f n
+    if BitConverter.IsLittleEndian then Array.Reverse bytes
+    bytes
 
 /// Converts a signed 32-bit integer into a byte array
 let internal getBigEndianBytesInt (n : int) = getBigEndianBytes n BitConverter.GetBytes

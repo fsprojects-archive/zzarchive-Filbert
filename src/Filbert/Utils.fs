@@ -10,7 +10,6 @@ open Filbert.Core
 type BufferPool (size : int, arraySize : int) =
     let factory _ = Array.zeroCreate<byte> arraySize
     let pool      = new ConcurrentBag<byte[]>({ 1..size } |> Seq.map factory)
-    let empty     = factory()
    
     let get () = 
         match pool.TryTake() with
@@ -27,11 +26,11 @@ type BufferPool (size : int, arraySize : int) =
 
 type internal DecoderContext (stream : Stream) =
     static let maxBufferSize = 1024
-    static let bufferPool = new BufferPool(128, maxBufferSize)   
+    static let bufferPool    = new BufferPool(128, maxBufferSize)   
 
-    let mutable buffer  = bufferPool.Get()
+    let mutable buffer     = bufferPool.Get()
     let mutable bufferSize = stream.Read(buffer, 0, maxBufferSize)
-    let mutable index   = 0
+    let mutable index      = 0
 
     let initBuffer () =
         buffer     <- bufferPool.Get()
