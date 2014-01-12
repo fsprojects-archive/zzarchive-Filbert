@@ -1,11 +1,12 @@
-﻿module Filbert.AssemblyInfo
-
+﻿namespace System
 open System.Reflection
-open System.Runtime.CompilerServices
-open System.Runtime.InteropServices
 
-[<assembly: AssemblyTitle("BERT serializer for .Net")>]
-[<assembly: AssemblyDescription("BERT serializer for .Net")>]
-[<assembly: AssemblyProduct("BERT serializer for .Net")>]
-
+[<assembly: AssemblyTitleAttribute("Filbert")>]
+[<assembly: AssemblyProductAttribute("Filbert")>]
+[<assembly: AssemblyDescriptionAttribute("A BERT serializer and BERT-RPC client for .Net")>]
+[<assembly: AssemblyVersionAttribute("0.2.0")>]
+[<assembly: AssemblyFileVersionAttribute("0.2.0")>]
 do ()
+
+module internal AssemblyVersionInformation =
+    let [<Literal>] Version = "0.2.0"
