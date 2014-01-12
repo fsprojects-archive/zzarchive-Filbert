@@ -167,5 +167,8 @@ docs/output/
 # Temp folder used for publishing docs
 temp/
 
+# Temp folder used for test assemblies
+test/
+
 # Test results produced by build
 TestResults.xml

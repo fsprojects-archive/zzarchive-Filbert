@@ -41,9 +41,11 @@ let tags = "F# fsharp bert bertrpc serializer"
 
 // File system information 
 // (<solutionFile>.sln is built during the building process)
-let projectFile  = "Filbert.fsproj"
+let projectFile     = "Filbert.fsproj"
+let testProjectFile = "Filbert.Tests.fsproj"
+
 // Pattern specifying assemblies to be tested using NUnit
-let testAssemblies = ["tests/*/bin/*/Filbert*Tests*.dll"]
+let testAssemblies = [ testDir + "Filbert*Tests*.dll" ]
 
 // Git configuration (used for publishing documentation in gh-pages branch)
 // The profile where the project is posted 
@@ -94,6 +96,15 @@ let files includes =
 Target "Build" (fun _ ->
     files [ "src/Filibert/" + projectFile ]
     |> MSBuildRelease buildDir "Rebuild"
+    |> ignore
+)
+
+// --------------------------------------------------------------------------------------
+// Build library & test project
+
+Target "BuildTests" (fun _ ->
+    files [ "tests/Filbert.Tests/" + testProjectFile ]
+    |> MSBuildRelease testDir "Rebuild"
     |> ignore
 )
 
@@ -176,7 +187,8 @@ Target "All" DoNothing
   ==> "RestorePackages"
   ==> "AssemblyInfo"
   ==> "Build"
-//  ==> "RunTests"
+  ==> "BuildTests"
+  ==> "RunTests"
   ==> "All"
 
 "All" 
