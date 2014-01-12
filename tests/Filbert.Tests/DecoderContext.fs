@@ -25,9 +25,9 @@ type ``Given a decoder context`` () =
         use memStream = new MemoryStream(input)
         use ctx       = new DecoderContext(memStream)
 
-        ctx.ReadByte() |> should equal <| new ArraySegment<byte>(input, 0, 1)
-        ctx.ReadByte() |> should equal <| new ArraySegment<byte>(input, 1, 1)
-        ctx.ReadByte() |> should equal <| new ArraySegment<byte>(input, 2, 1)
+        ctx.ReadByte() |> should equal <| 1uy
+        ctx.ReadByte() |> should equal <| 2uy
+        ctx.ReadByte() |> should equal <| 3uy
     
     [<Test>]
     member test.``when there is sufficient data in the stream, read bytes should return them all`` () =
@@ -52,7 +52,7 @@ type ``Given a decoder context`` () =
         use memStream = new MemoryStream(input)
         use ctx       = new DecoderContext(memStream)
 
-        ctx.ReadByte()     |> should equal <| new ArraySegment<byte>(input, 0, 1)
+        ctx.ReadByte()     |> should equal 1uy
         ctx.ReadBytes 1024 |> should equal <| new ArraySegment<byte>(input, 1, 1024)
 
     [<Test>]

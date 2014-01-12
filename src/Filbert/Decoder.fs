@@ -10,9 +10,6 @@ open Checked
 
 [<AutoOpen>]
 module ArraySegmentReaders =
-    /// Reads a single byte
-    let inline byteReader (seg : ArraySegment<byte>) = seg.Array.[seg.Offset]
-
     /// Reads some bytes into an array
     let inline byteArrayReader n (seg : ArraySegment<byte>) = 
         let arr = Array.zeroCreate<byte> n
@@ -53,7 +50,7 @@ let inline readBigInt n (ctx : DecoderContext) =
     let bigInteger (buffer : byte[]) =
         buffer |> Seq.mapi (fun i digit -> (byteToBigInt digit) * (256I ** i)) |> Seq.sum
 
-    let sign = ctx.ReadByte() |> byteReader |> function | 0uy -> 1I | 1uy -> -1I
+    let sign = ctx.ReadByte() |> function | 0uy -> 1I | 1uy -> -1I
     ctx.ReadBytes n |> byteArrayReader n |> bigInteger |> (fun n -> n * sign)
 
 /// Converts a set of megasecond, second and microsecond values into a DateTime value
@@ -62,7 +59,7 @@ let inline toDateTime (mega : int) (sec :int) (micro : int) =
 
 [<AutoOpen>]
 module Decoders = 
-    let decodeSmallInt = byteReader >> int >> Integer
+    let decodeSmallInt = int >> Integer
     let decodeInt      = byteArrayReader 4 >> bigEndianInteger >> Integer
     let decodeFloat    = byteArrayReader 31 >> str >> float >> Float
     let decodeUint     = byteArrayReader 4 >> bigEndianUinteger
@@ -91,7 +88,7 @@ let inline readComplexBert (items : Bert[]) =
 /// Parses the Erlang External Term Format 
 /// see http://erlang.org/doc/apps/erts/erl_ext_dist.html
 let rec decodeType (ctx : DecoderContext) : Bert =
-    match byteReader <| ctx.ReadByte() with
+    match ctx.ReadByte() with
     // SMALL_INTEGER (unsigned 8 bit integer) 
     | Tags.smallInteger -> ctx.ReadByte() |> decodeSmallInt
     // INTEGER (32 bit integer in big-endian format)
@@ -105,7 +102,7 @@ let rec decodeType (ctx : DecoderContext) : Bert =
                            | 0 -> raise <| InvalidAtomLength len
                            | n -> ctx.ReadBytes len |> byteArrayReader len |> str |> Atom
     // SMALL_TUPLE
-    | Tags.smallTuple   -> let arity = ctx.ReadByte() |> byteReader |> int
+    | Tags.smallTuple   -> let arity = ctx.ReadByte() |> int
                            match arity with
                            | 0 -> [||] |> Tuple
                            | n -> ctx |> readTuple n
@@ -126,7 +123,7 @@ let rec decodeType (ctx : DecoderContext) : Bert =
                            // as per specified by LIST_EXT, it should end with NIL_EXT for a
                            // proper list, for simplicity sake, for now impropert list is not
                            // going to be supported here
-                           match ctx.ReadByte() |> byteReader with
+                           match ctx.ReadByte() with
                            | Tags.nil -> List berts
                            | _ -> raise ImpropertyListNotSupported
     // BINARY
@@ -135,7 +132,7 @@ let rec decodeType (ctx : DecoderContext) : Bert =
                            | 0 -> Binary [||]
                            | n -> ctx.ReadBytes n |> byteArrayReader n |> Binary
     // SMALL_BIG
-    | Tags.smallBig     -> let n = ctx.ReadByte() |> byteReader |> int
+    | Tags.smallBig     -> let n = ctx.ReadByte() |> int
                            ctx |> readBigInt n |> BigInteger
     // LARGE_BIG
     | Tags.largeBig     -> let n = ctx.ReadBytes 4 |> decodeUint |> int
@@ -160,6 +157,6 @@ and readTuple arity (ctx : DecoderContext) =
 
 let decode (stream : Stream) =
     use ctx = new DecoderContext(stream)
-    match byteReader <| ctx.ReadByte() with
+    match ctx.ReadByte() with
     | Constants.version -> decodeType ctx
     | n   -> raise <| InvalidVersion n

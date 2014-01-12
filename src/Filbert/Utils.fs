@@ -85,8 +85,16 @@ type internal DecoderContext (stream : Stream) =
                 swapBuffer()
                 if n > bufferSize then raise <| InsufficientNumberOfBytes(n, bufferSize)
                 readBytes n
+
+    let readByte () =
+        if bufferSize = 0 then raise <| InsufficientNumberOfBytes(1, bufferSize)
+        if index = bufferSize then initBuffer()
+        try
+            buffer.[index]
+        finally
+            index <- index + 1
             
-    member this.ReadByte()   = readBytes 1
+    member this.ReadByte()   = readByte()
 
     member this.ReadBytes(n) = readBytes n
         
