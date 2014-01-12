@@ -26,7 +26,7 @@ type internal BufferPool (size : int, arraySize : int) =
 
 type internal DecoderContext (stream : Stream) =
     static let maxBufferSize = 1024
-    static let bufferPool    = new BufferPool(128, maxBufferSize)   
+    static let bufferPool    = new BufferPool(128, maxBufferSize)
 
     let mutable buffer     = bufferPool.Get()
     let mutable bufferSize = stream.Read(buffer, 0, maxBufferSize)

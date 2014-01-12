@@ -31,7 +31,7 @@ let rec bigEndianShort = (readBigEndian BitConverter.ToInt16)
 let rec bigEndianUshort = (readBigEndian BitConverter.ToUInt16)
 
 /// Converts a byte array into a string
-let str = (System.Text.Encoding.ASCII.GetString)
+let str = System.Text.Encoding.ASCII.GetString
 
 /// Converts a byte value to a bigint
 let inline byteToBigInt (b : byte) = bigint (int b)
