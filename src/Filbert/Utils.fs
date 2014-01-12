@@ -24,6 +24,53 @@ type internal BufferPool (size : int, arraySize : int) =
     member this.Get ()  = get()
     member this.Put arr = put arr
 
+type internal EncoderContext (stream : Stream) =
+    static let bufferSize = 1024
+    static let bufferPool = new BufferPool(128, bufferSize)
+
+    let mutable buffer    = bufferPool.Get()
+    let mutable index     = 0
+
+    let initBuffer () =
+        buffer <- bufferPool.Get()
+        index  <- 0
+    
+    let flush () =
+        stream.Write(buffer, 0, index)
+        bufferPool.Put buffer
+        index <- 0
+
+    let writeLargeArray (arr : byte[]) =
+        flush()
+        stream.Write(arr, 0, arr.Length)
+    
+    let writeByte x =
+        if index = bufferSize then 
+            flush()
+            initBuffer()
+
+        buffer.[index] <- x
+        index          <- index + 1
+
+    let rec writeBytes (arr : byte[]) =
+        if arr.Length > bufferSize then writeLargeArray arr            
+        else
+            let newIndex = index + arr.Length
+            if newIndex <= bufferSize then
+                Buffer.BlockCopy(arr, 0, buffer, index, arr.Length)
+                index <- newIndex
+            else
+                flush()
+                initBuffer()
+                writeBytes arr
+
+    member this.WriteByte x    = writeByte x
+
+    member this.WriteBytes arr = writeBytes arr
+
+    interface IDisposable with
+        member this.Dispose() = flush()
+
 type internal DecoderContext (stream : Stream) =
     static let maxBufferSize = 1024
     static let bufferPool    = new BufferPool(128, maxBufferSize)

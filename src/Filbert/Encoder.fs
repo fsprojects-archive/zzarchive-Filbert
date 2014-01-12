@@ -3,6 +3,7 @@
 open System
 open System.IO
 open Filbert.Core
+open Filbert.Utils
 
 // make sure we don't have any arithmetic overflows
 open Checked
@@ -23,24 +24,24 @@ let getBigEndianBytesUint (n : uint32) = getBigEndianBytes n BitConverter.GetByt
 let getBigEndianBytesUshort (n : uint16) = getBigEndianBytes n BitConverter.GetBytes
 
 /// Writes one byte to the stream
-let writeOneByte byteVal (stream : Stream) = stream.WriteByte byteVal
-
-/// Writes an array of bytes to the stream
-let writeBytes (stream : Stream) (byteArr : byte[]) = stream.Write (byteArr, 0, byteArr.Length)    
+//let writeOneByte byteVal (stream : Stream) = stream.WriteByte byteVal
+//
+///// Writes an array of bytes to the stream
+//let writeBytes (stream : Stream) (byteArr : byte[]) = stream.Write (byteArr, 0, byteArr.Length)    
 
 /// Encodes a 8-bit unsigned integer
-let encodeSmallInt (n : int) (stream : Stream) = 
-    stream |> writeOneByte Tags.smallInteger
-    stream |> writeOneByte (byte n)
+let encodeSmallInt (n : int) (ctx : EncoderContext) = 
+    ctx.WriteByte Tags.smallInteger
+    ctx.WriteByte (byte n)
 
 /// Encodes a 32-bit signed integer
-let encodeInt (n : int) (stream : Stream) = 
-    stream |> writeOneByte Tags.integer
-    getBigEndianBytesInt n |> writeBytes stream
+let encodeInt (n : int) (ctx : EncoderContext) = 
+    ctx.WriteByte Tags.integer
+    getBigEndianBytesInt n |> ctx.WriteBytes
 
 /// Encodes a float
-let encodeFloat (f : float) (stream : Stream) = 
-    stream |> writeOneByte Tags.float
+let encodeFloat (f : float) (ctx : EncoderContext) = 
+    ctx.WriteByte Tags.float
     let fStr = f.ToString("e20")
     
     seq {
@@ -52,43 +53,43 @@ let encodeFloat (f : float) (stream : Stream) =
     }
     |> Seq.take 31
     |> Seq.toArray
-    |> writeBytes stream
+    |> ctx.WriteBytes
     
 /// Encodes an atom
-let encodeAtom (str : string) (stream : Stream) =
+let encodeAtom (str : string) (ctx : EncoderContext) =
     match str.Length with 
     | 0 -> raise <| InvalidAtomLength str.Length
     | n when n > Constants.maxAtomLen -> raise <| InvalidAtomLength str.Length
     | n ->
-        stream |> writeOneByte Tags.atom
-        str.Length |> uint16 |> getBigEndianBytesUshort |> writeBytes stream
-        Text.Encoding.ASCII.GetBytes str |> writeBytes stream
+        ctx.WriteByte Tags.atom
+        str.Length |> uint16 |> getBigEndianBytesUshort |> ctx.WriteBytes
+        str |> Text.Encoding.ASCII.GetBytes |> ctx.WriteBytes
 
 /// Encodes a byte list (string)
-let encodeByteList (bytes : byte[]) (stream : Stream) =
+let encodeByteList (bytes : byte[]) (ctx : EncoderContext) =
     if bytes.Length > Constants.maxStringLength then raise <| InvalidStringLength bytes.Length
 
-    stream |> writeOneByte Tags.string
-    bytes.Length |> uint16 |> getBigEndianBytesUshort |> writeBytes stream
-    bytes |> writeBytes stream
+    ctx.WriteByte Tags.string
+    bytes.Length |> uint16 |> getBigEndianBytesUshort |> ctx.WriteBytes
+    bytes |> ctx.WriteBytes
 
 /// Encodes a binary array
-let encodeBinary (bytes : byte[]) (stream : Stream) =
+let encodeBinary (bytes : byte[]) (ctx : EncoderContext) =
     if bytes.LongLength > Constants.maxBinaryLength then raise <| InvalidBinaryLength bytes.LongLength
     
-    stream |> writeOneByte Tags.binary
+    ctx.WriteByte Tags.binary
     
     // use long length to accommodate the uint length value required by the format
-    bytes.LongLength |> uint32 |> getBigEndianBytesUint |> writeBytes stream
-    bytes |> writeBytes stream
+    bytes.LongLength |> uint32 |> getBigEndianBytesUint |> ctx.WriteBytes
+    bytes |> ctx.WriteBytes
 
 /// Encodes a big integer
-let encodeBigInt (n : bigint) (stream : Stream) =
+let encodeBigInt (n : bigint) (ctx : EncoderContext) =
     match n with 
     | _ when n >= 0I && n <= Constants.maxSmallInt
-        -> encodeSmallInt (int n) stream
+        -> encodeSmallInt (int n) ctx
     | _ when n >= Constants.minInteger && n <= Constants.maxInteger
-        -> encodeInt (int n) stream
+        -> encodeInt (int n) ctx
     | n -> let posValue = abs n
 
            // trim trailing 0 bytes
@@ -98,63 +99,63 @@ let encodeBigInt (n : bigint) (stream : Stream) =
                        | bytes -> bytes           
 
            if bytes.LongLength > 255L
-           then stream |> writeOneByte Tags.largeBig
-                bytes.LongLength |> uint32 |> getBigEndianBytesUint |> writeBytes stream
-           else stream |> writeOneByte Tags.smallBig
-                stream |> writeOneByte (bytes.Length |> byte)
+           then ctx.WriteByte Tags.largeBig
+                bytes.LongLength |> uint32 |> getBigEndianBytesUint |> ctx.WriteBytes
+           else ctx.WriteByte Tags.smallBig
+                ctx.WriteByte (bytes.Length |> byte)
 
            match n.Sign with
-           | 1 -> stream |> writeOneByte 0uy    // positive
-           | -1 -> stream |> writeOneByte 1uy   // negative
+           | 1  -> ctx.WriteByte 0uy   // positive
+           | -1 -> ctx.WriteByte 1uy   // negative
 
-           bytes |> writeBytes stream
+           bytes |> ctx.WriteBytes
 
-let rec encodeBert (stream : Stream) bert =
+let rec encodeBert (ctx : EncoderContext) bert =
     match bert with
     // SMALL_INTEGER (unsigned 8 bit integer)
-    | Integer(n) when n >= 0 && n <= 255 -> encodeSmallInt n stream
+    | Integer(n) when n >= 0 && n <= 255 -> encodeSmallInt n ctx
     // INTEGER (32 bit integer in big-endian format)
-    | Integer(n)        -> encodeInt n stream
-    | Float(f)          -> encodeFloat f stream
-    | Atom(str)         -> encodeAtom str stream
-    | Nil               -> encodeNil stream
-    | ByteList(bytes)   -> encodeByteList bytes stream
-    | Binary(bytes)     -> encodeBinary bytes stream
-    | List(berts)       -> encodeList berts stream
-    | Tuple(berts)      -> encodeTuple berts stream
-    | BigInteger(n)     -> encodeBigInt n stream
+    | Integer(n)        -> encodeInt n ctx
+    | Float(f)          -> encodeFloat f ctx
+    | Atom(str)         -> encodeAtom str ctx
+    | Nil               -> encodeNil ctx
+    | ByteList(bytes)   -> encodeByteList bytes ctx
+    | Binary(bytes)     -> encodeBinary bytes ctx
+    | List(berts)       -> encodeList berts ctx
+    | Tuple(berts)      -> encodeTuple berts ctx
+    | BigInteger(n)     -> encodeBigInt n ctx
 
     // complex types
-    | EmptyArray        -> stream |> writeOneByte Tags.nil
-    | Boolean(b)        -> encodeBoolean b stream
-    | Dictionary(map)   -> encodeDictionary map stream
-    | Time(t)           -> encodeTime t stream
+    | EmptyArray        -> ctx.WriteByte Tags.nil
+    | Boolean(b)        -> encodeBoolean b ctx
+    | Dictionary(map)   -> encodeDictionary map ctx
+    | Time(t)           -> encodeTime t ctx
 
 /// Encodes a list
-and encodeList (berts : Bert[]) (stream : Stream) =
+and encodeList (berts : Bert[]) (ctx : EncoderContext) =
     if berts.LongLength > Constants.maxListLength then raise <| InvalidListLength berts.LongLength
     
-    stream |> writeOneByte Tags.list
+    ctx.WriteByte Tags.list
 
     // use long length to accommodate the uint length value required by the format
-    berts.LongLength |> uint32 |> getBigEndianBytesUint |> writeBytes stream
-    berts |> Array.iter (encodeBert stream)
+    berts.LongLength |> uint32 |> getBigEndianBytesUint |> ctx.WriteBytes
+    berts |> Array.iter (encodeBert ctx)
 
     // as per specified by STRING_EXT, end the list with NIL_EXT as tail
-    stream |> writeOneByte Tags.nil
+    ctx.WriteByte Tags.nil
 
 /// Encodes a tuple
-and encodeTuple (berts : Bert[]) (stream : Stream) =
+and encodeTuple (berts : Bert[]) (ctx : EncoderContext) =
     if berts.LongLength > Constants.maxTupleLength then raise <| InvalidTupleLength berts.LongLength
     
     // writes the correct tag and length bytes according to the number of items in the tuple
     if berts.LongLength <= 255L 
-    then stream |> writeOneByte Tags.smallTuple
-         stream |> writeOneByte (berts.Length |> byte)
-    else stream |> writeOneByte Tags.largeTuple
-         berts.LongLength |> uint32 |> getBigEndianBytesUint |> writeBytes stream
+    then ctx.WriteByte Tags.smallTuple
+         ctx.WriteByte (berts.Length |> byte)
+    else ctx.WriteByte Tags.largeTuple
+         berts.LongLength |> uint32 |> getBigEndianBytesUint |> ctx.WriteBytes
         
-    berts |> Array.iter (encodeBert stream)
+    berts |> Array.iter (encodeBert ctx)
 
 /// Encodes a nil
 and encodeNil = encodeTuple [| Atom(Constants.bert); Atom(Constants.nil) |]
@@ -188,5 +189,6 @@ and encodeTime t =
     encodeTuple tuple
 
 let encode bert (stream : Stream) =
-    stream.WriteByte Constants.version
-    encodeBert stream bert
+    use ctx = new EncoderContext(stream)
+    ctx.WriteByte Constants.version
+    encodeBert ctx bert
