@@ -29,11 +29,11 @@ namespace Filbert.Benchmark
         private static void Main(string[] args)
         {
             // speed test protobuf-net
-            DoSpeedTest(
-                "Protobuf-Net",
-                SimpleObjects,
-                SerializeWithProtobufNet,
-                DeserializeWithProtobufNet<SimpleObject>);
+            //DoSpeedTest(
+            //    "Protobuf-Net",
+            //    SimpleObjects,
+            //    SerializeWithProtobufNet,
+            //    DeserializeWithProtobufNet<SimpleObject>);
 
             // speed test Filbert
             DoSpeedTest(
