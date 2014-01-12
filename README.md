@@ -2,7 +2,7 @@
 
 ## Introduction
 
-Filbert is a simple **BERT** serializer for .Net, written in F#.
+Filbert is a simple **BERT** serializer and **BERT-RPC** client for .Net, written in F#.
 
 ## What is BERT?
 
@@ -28,4 +28,17 @@ In addition, BERT also specifies a number of complex types as tuples whose first
 * **time** : { bert, time, 1255, 295581, 446228 }, equals to 1255 megaseconds (millions of secons) + 295581 seconds + 446228 microseconds (millionths of a second, or 10 ticks) since the Unix Epoch time (1970 Jan 1st).
 
 ## How does it work?
-Please see the [wiki page] (https://github.com/theburningmonk/Filbert/wiki/Tutorial) for a quick tutorial on how to use __Filbert__.
+Please see the [wiki page] (https://github.com/theburningmonk/Filbert/wiki) for a quick tutorial on how to use __Filbert__.
+
+## NuGet
+
+Download and install **Filbert** using [NuGet](https://nuget.org/packages/Filbert).
+
+<a href="https://nuget.org/packages/Filbert"><img src="http://theburningmonk.com/images/filbert-nuget-install.png" alt="NuGet package"/></a>
+
+## Updates
+Follow the official twitter account [@FilbertFs](https://twitter.com/FilbertFs) for updates!
+
+
+[![Bitdeli Badge](https://d2weczhvl823v0.cloudfront.net/theburningmonk/filbert/trend.png)](https://bitdeli.com/free "Bitdeli Badge")
+
