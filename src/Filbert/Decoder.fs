@@ -45,10 +45,10 @@ let rec bigEndianUshort = (readBigEndian BitConverter.ToUInt16)
 let str = (System.Text.Encoding.ASCII.GetString)
 
 /// Converts a byte value to a bigint
-let byteToBigInt (b : byte) = bigint (int b)
+let inline byteToBigInt (b : byte) = bigint (int b)
 
 /// Reads a big integer from n bytes
-let readBigInt n (ctx : DecoderContext) =
+let inline readBigInt n (ctx : DecoderContext) =
     /// Converts a byte array into a big integer
     let bigInteger (buffer : byte[]) =
         buffer |> Seq.mapi (fun i digit -> (byteToBigInt digit) * (256I ** i)) |> Seq.sum
@@ -57,7 +57,7 @@ let readBigInt n (ctx : DecoderContext) =
     ctx.ReadBytes n |> byteArrayReader n |> bigInteger |> (fun n -> n * sign)
 
 /// Converts a set of megasecond, second and microsecond values into a DateTime value
-let toDateTime (mega : int) (sec :int) (micro : int) =
+let inline toDateTime (mega : int) (sec :int) (micro : int) =
     Constants.unixEpoch.AddSeconds(1000000.0 * float mega + float sec + float micro / 1000000.0)
 
 [<AutoOpen>]
@@ -69,7 +69,7 @@ module Decoders =
     let decodeUshort   = byteArrayReader 2 >> bigEndianUshort
 
 /// Reads a complex BERT type
-let readComplexBert (items : Bert[]) =
+let inline readComplexBert (items : Bert[]) =
     match items with
     | [| Atom(Constants.bert); Atom(Constants.true')  |]
         -> Boolean true
@@ -108,9 +108,9 @@ let rec decodeType (ctx : DecoderContext) : Bert =
     | Tags.smallTuple   -> let arity = ctx.ReadByte() |> byteReader |> int
                            match arity with
                            | 0 -> [||] |> Tuple
-                           | n -> ctx |> readTuple (int64 n)
+                           | n -> ctx |> readTuple n
     // LARGE_TUPLE
-    | Tags.largeTuple   -> let arity = ctx.ReadBytes 4 |> decodeUint |> int64
+    | Tags.largeTuple   -> let arity = ctx.ReadBytes 4 |> decodeUint |> int
                            ctx |> readTuple arity
     // NIL
     | Tags.nil          -> EmptyArray
@@ -120,7 +120,7 @@ let rec decodeType (ctx : DecoderContext) : Bert =
                            then raise <| InvalidStringLength len
                            else ctx.ReadBytes len |> byteArrayReader len |> ByteList
     // LIST
-    | Tags.list         -> let len = ctx.ReadBytes 4 |> decodeUint |> int64
+    | Tags.list         -> let len = ctx.ReadBytes 4 |> decodeUint |> int
                            let berts = ctx |> readBerts len
                            
                            // as per specified by LIST_EXT, it should end with NIL_EXT for a
@@ -144,7 +144,10 @@ let rec decodeType (ctx : DecoderContext) : Bert =
 
 /// Reads a number of BERTs from the stream
 and readBerts n (ctx : DecoderContext) =
-    seq { 1L..n } |> Seq.map (fun _ -> decodeType ctx) |> Seq.toArray
+    let arr = Array.zeroCreate<Bert> n
+    for i = 0 to (n-1) do arr.[i] <- decodeType ctx
+
+    arr
 
 /// Reads a number of BERTs from the stream and return a complex BERT type
 /// or a Tuple of berts depending on whether the magic 'bert' atom is the
@@ -156,7 +159,7 @@ and readTuple arity (ctx : DecoderContext) =
     | _                    -> Tuple berts
 
 let decode (stream : Stream) =
-    use ctx = new DecoderContext(stream)
+    let ctx = new DecoderContext(stream)
     match byteReader <| ctx.ReadByte() with
     | Constants.version -> decodeType ctx
     | n   -> raise <| InvalidVersion n

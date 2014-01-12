@@ -18,7 +18,7 @@ type BufferPool (size : int, arraySize : int) =
         | _ -> factory()
 
     let put (arr : byte[]) =
-        Buffer.BlockCopy (empty, 0, arr, 0, arraySize)
+        Array.Clear(arr, 0, arraySize)
         pool.Add arr
 
     member this.Size    = pool.Count
