@@ -60,6 +60,8 @@
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Numerics" />
+  </ItemGroup>
+  <ItemGroup>
     <ProjectReference Include="..\..\src\Filbert\Filbert.fsproj">
       <Name>Filbert</Name>
       <Project>{c5ef4e2a-c618-40ea-ad28-a07c82c852de}</Project>
