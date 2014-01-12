@@ -7,7 +7,7 @@ open System.Threading
 
 open Filbert.Core
 
-type BufferPool (size : int, arraySize : int) =
+type internal BufferPool (size : int, arraySize : int) =
     let factory _ = Array.zeroCreate<byte> arraySize
     let pool      = new ConcurrentBag<byte[]>({ 1..size } |> Seq.map factory)
    
@@ -42,7 +42,7 @@ type internal DecoderContext (stream : Stream) =
 
         // block copy the last bytes from the current buffer to the new buffer
         let remCount = bufferSize - index
-        Buffer.BlockCopy(buffer, index, buffer', 0, remCount)
+        if remCount > 0 then Buffer.BlockCopy(buffer, index, buffer', 0, remCount)
 
         // now we can return the current buffer to the pool and switch to the new buffer
         bufferPool.Put buffer
@@ -60,7 +60,7 @@ type internal DecoderContext (stream : Stream) =
 
         // block copy the last bytes from the current buffer to the new array
         let remCount = bufferSize - index
-        Buffer.BlockCopy(buffer, index, arr, 0, remCount)
+        if remCount > 0 then Buffer.BlockCopy(buffer, index, arr, 0, remCount)
         
         // read from the stream to get the rest of the data for the output array
         let count = stream.Read(arr, remCount, n - remCount)
@@ -73,9 +73,7 @@ type internal DecoderContext (stream : Stream) =
 
         new ArraySegment<byte>(arr, 0, n)
 
-    let rec readBytes n = 
-        if index = bufferSize then initBuffer()
-
+    let rec readBytes n =
         if n > maxBufferSize then readLargeArray n
         else 
             let newIndex = index + n
@@ -85,6 +83,7 @@ type internal DecoderContext (stream : Stream) =
                 seg
             else
                 swapBuffer()
+                if n > bufferSize then raise <| InsufficientNumberOfBytes(n, bufferSize)
                 readBytes n
             
     member this.ReadByte()   = readBytes 1
