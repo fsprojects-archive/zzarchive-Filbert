@@ -36,8 +36,10 @@ type internal EncoderContext (stream : Stream) =
         index  <- 0
     
     let flush () =
-        stream.Write(buffer, 0, index)
-        bufferPool.Put buffer
+        if index > 0 then 
+            stream.Write(buffer, 0, index)
+            bufferPool.Put buffer
+
         index <- 0
 
     let writeLargeArray (arr : byte[]) =

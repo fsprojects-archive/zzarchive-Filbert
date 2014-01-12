@@ -23,12 +23,6 @@ let getBigEndianBytesUint (n : uint32) = getBigEndianBytes n BitConverter.GetByt
 /// Converts an unsigned 16-bit integer into a byte array
 let getBigEndianBytesUshort (n : uint16) = getBigEndianBytes n BitConverter.GetBytes
 
-/// Writes one byte to the stream
-//let writeOneByte byteVal (stream : Stream) = stream.WriteByte byteVal
-//
-///// Writes an array of bytes to the stream
-//let writeBytes (stream : Stream) (byteArr : byte[]) = stream.Write (byteArr, 0, byteArr.Length)    
-
 /// Encodes a 8-bit unsigned integer
 let encodeSmallInt (n : int) (ctx : EncoderContext) = 
     ctx.WriteByte Tags.smallInteger
