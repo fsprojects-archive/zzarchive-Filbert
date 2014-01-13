@@ -1,4 +1,4 @@
-# Filbert (@FilbertFs)
+# Filbert ([@FilbertFs](https://twitter.com/FilbertFs))
 
 ## Introduction
 
