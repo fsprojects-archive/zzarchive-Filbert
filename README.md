@@ -35,7 +35,3 @@ Please see the [wiki page] (https://github.com/theburningmonk/Filbert/wiki) for 
 Download and install **Filbert** using [NuGet](https://nuget.org/packages/Filbert).
 
 <a href="https://nuget.org/packages/Filbert"><img src="http://theburningmonk.com/images/filbert-nuget-install.png" alt="NuGet package"/></a>
-
-
-[![Bitdeli Badge](https://d2weczhvl823v0.cloudfront.net/theburningmonk/filbert/trend.png)](https://bitdeli.com/free "Bitdeli Badge")
-
