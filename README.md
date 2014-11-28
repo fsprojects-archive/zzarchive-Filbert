@@ -35,3 +35,10 @@ Please see the [wiki page] (https://github.com/theburningmonk/Filbert/wiki) for 
 Download and install **Filbert** using [NuGet](https://nuget.org/packages/Filbert).
 
 <a href="https://nuget.org/packages/Filbert"><img src="http://theburningmonk.com/images/filbert-nuget-install.png" alt="NuGet package"/></a>
+
+
+## Maintainer(s)
+
+- [@theburningmonk](https://github.com/theburningmonk)
+
+The default maintainer account for projects under "fsprojects" is [@fsgit](https://github.com/fsgit) - F# Community Project Incubation Space (repo management)
