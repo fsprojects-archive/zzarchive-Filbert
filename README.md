@@ -1,8 +1,11 @@
+[![Issue Stats](http://issuestats.com/github/fsprojects/Filbert/badge/issue)](http://issuestats.com/github/fsprojects/Filbert)
+[![Issue Stats](http://issuestats.com/github/fsprojects/Filbert/badge/pr)](http://issuestats.com/github/fsprojects/Filbert)
+
 # Filbert ([@FilbertFs](https://twitter.com/FilbertFs))
 
 ## Introduction
 
-Filbert is a simple **BERT** serializer and **BERT-RPC** client for .Net, written in F#.
+Filbert is a simple **BERT** serializer and **BERT-RPC** client for .Net, written in F#. [![NuGet Status](http://img.shields.io/nuget/v/Filbert.svg?style=flat)](https://www.nuget.org/packages/Filbert/)
 
 ## What is BERT?
 
