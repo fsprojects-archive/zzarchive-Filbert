@@ -44,4 +44,4 @@ Download and install **Filbert** using [NuGet](https://nuget.org/packages/Filber
 
 - [@theburningmonk](https://github.com/theburningmonk)
 
-The default maintainer account for projects under "fsprojects" is [@fsgit](https://github.com/fsgit) - F# Community Project Incubation Space (repo management)
+The default maintainer account for projects under "fsprojects" is [@fsprojectsgit](https://github.com/fsprojectsgit) - F# Community Project Incubation Space (repo management)
